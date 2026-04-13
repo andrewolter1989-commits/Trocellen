@@ -1,4 +1,3 @@
-
 const ORIGIN_COUNTRY = "DE";
 const DEFAULT_ZONE_MODE = "ALL";
 
@@ -7,7 +6,6 @@ const STATE = {
   zones: [],
   floaterConfig: {},
   forwarders: [],
-  ready: false,
 };
 
 const ZONE_MODE_BY_FORWARDER = {
@@ -29,6 +27,13 @@ function normalizeKey(value) {
     .replace(/\s+/g, " ");
 }
 
+function normalizePostal(value) {
+  return String(value ?? "")
+    .toUpperCase()
+    .replace(/\s+/g, "")
+    .trim();
+}
+
 function parseNumberDE(value) {
   if (value == null) return NaN;
   const raw = String(value).trim();
@@ -36,10 +41,20 @@ function parseNumberDE(value) {
   return Number(raw.replace(/\./g, "").replace(/,/g, "."));
 }
 
+function round2(value) {
+  return Math.round((value + Number.EPSILON) * 100) / 100;
+}
+
 function money(value) {
   return Number.isFinite(value)
     ? value.toLocaleString("de-DE", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " €"
     : "—";
+}
+
+function percent(value) {
+  return Number.isFinite(value)
+    ? value.toLocaleString("de-DE", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " %"
+    : "0,00 %";
 }
 
 async function fetchTextSmart(url) {
@@ -96,6 +111,15 @@ function parseCsv(text) {
   return rows;
 }
 
+function detectZoneColumns(headers) {
+  const columns = [];
+  headers.forEach((header, index) => {
+    const match = String(header).trim().match(/^zone\s*(\d+)$/i);
+    if (match) columns.push({ index, zone: Number(match[1]) });
+  });
+  return columns;
+}
+
 function getZoneMode(forwarder) {
   return ZONE_MODE_BY_FORWARDER[normalizeKey(forwarder)] || DEFAULT_ZONE_MODE;
 }
@@ -106,17 +130,8 @@ function getFloaterPercent(forwarder) {
   return Number.isFinite(value) ? value : 0;
 }
 
-function round2(value) {
-  return Math.round((value + Number.EPSILON) * 100) / 100;
-}
-
-function detectZoneColumns(headers) {
-  const columns = [];
-  headers.forEach((header, index) => {
-    const match = String(header).trim().match(/^zone\s*(\d+)$/i);
-    if (match) columns.push({ index, zone: Number(match[1]) });
-  });
-  return columns;
+function isNumericZoneValue(value) {
+  return /^\d+$/.test(String(value ?? "").trim());
 }
 
 async function loadZones() {
@@ -135,15 +150,23 @@ async function loadZones() {
 
   STATE.zones = rows.slice(1)
     .filter((row) => row[iForwarder])
-    .map((row) => ({
-      forwarder: row[iForwarder].trim(),
-      originCountry: row[iOrigin].trim(),
-      destCountry: row[iDest].trim(),
-      from: parseNumberDE(row[iFrom]),
-      to: parseNumberDE(row[iTo]),
-      zone: Number.parseInt(String(row[iZone]).trim(), 10),
-    }))
-    .filter((row) => Number.isFinite(row.from) && Number.isFinite(row.to) && Number.isFinite(row.zone));
+    .map((row) => {
+      const fromRaw = String(row[iFrom] ?? "").trim();
+      const toRaw = String(row[iTo] ?? "").trim();
+      return {
+        forwarder: String(row[iForwarder] ?? "").trim(),
+        originCountry: String(row[iOrigin] ?? "").trim(),
+        destCountry: String(row[iDest] ?? "").trim(),
+        fromRaw,
+        toRaw,
+        fromNorm: normalizePostal(fromRaw),
+        toNorm: normalizePostal(toRaw),
+        numericFrom: isNumericZoneValue(fromRaw) ? Number.parseInt(fromRaw, 10) : null,
+        numericTo: isNumericZoneValue(toRaw) ? Number.parseInt(toRaw, 10) : null,
+        zone: Number.parseInt(String(row[iZone]).trim(), 10),
+      };
+    })
+    .filter((row) => Number.isFinite(row.zone));
 }
 
 async function loadRates() {
@@ -171,18 +194,22 @@ async function loadRates() {
         if (Number.isFinite(amount)) zonePrices.set(zone, amount);
       });
       return {
-        forwarder: row[iForwarder].trim(),
-        originCountry: row[iOrigin].trim(),
-        destCountry: row[iDest].trim(),
+        forwarder: String(row[iForwarder] ?? "").trim(),
+        originCountry: String(row[iOrigin] ?? "").trim(),
+        destCountry: String(row[iDest] ?? "").trim(),
         from: parseNumberDE(row[iFrom]),
         to: parseNumberDE(row[iTo]),
-        unit: row[iUnit].trim(),
+        unit: String(row[iUnit] ?? "").trim(),
         zonePrices,
       };
     })
     .filter((row) => Number.isFinite(row.from) && Number.isFinite(row.to));
 
-  STATE.forwarders = Array.from(new Set(STATE.rates.map((row) => row.forwarder))).sort((a, b) => a.localeCompare(b, "de"));
+  STATE.forwarders = Array.from(new Set(
+    STATE.rates
+      .filter((row) => row.originCountry === ORIGIN_COUNTRY)
+      .map((row) => row.forwarder),
+  )).sort((a, b) => a.localeCompare(b, "de"));
 }
 
 async function loadFloaterConfig() {
@@ -198,111 +225,200 @@ async function loadFloaterConfig() {
   }
 }
 
-function getForwarderRows(forwarder, destCountry, loadMeters) {
+function postalMatchesZone(zoneRow, postalCode) {
+  const postalNorm = normalizePostal(postalCode);
+  if (!postalNorm) return false;
+
+  if (zoneRow.numericFrom != null && zoneRow.numericTo != null) {
+    const digits = postalNorm.replace(/\D/g, "");
+    if (!digits) return false;
+    const postalValue = Number.parseInt(digits, 10);
+    return Number.isFinite(postalValue)
+      && postalValue >= zoneRow.numericFrom
+      && postalValue <= zoneRow.numericTo;
+  }
+
+  if (!zoneRow.fromNorm) return false;
+
+  if (zoneRow.fromNorm === zoneRow.toNorm) {
+    return postalNorm.startsWith(zoneRow.fromNorm);
+  }
+
+  return postalNorm >= zoneRow.fromNorm && postalNorm <= zoneRow.toNorm;
+}
+
+function findZone(forwarder, destCountry, postalCode) {
+  const zoneMode = getZoneMode(forwarder);
+  const matches = STATE.zones.filter((row) => (
+    normalizeKey(row.forwarder) === normalizeKey(zoneMode)
+    && row.originCountry === ORIGIN_COUNTRY
+    && row.destCountry === destCountry
+    && postalMatchesZone(row, postalCode)
+  ));
+
+  if (!matches.length) return null;
+
+  matches.sort((a, b) => {
+    const aLen = a.fromNorm.length;
+    const bLen = b.fromNorm.length;
+    if (bLen !== aLen) return bLen - aLen;
+    const aWidth = (a.numericTo ?? 0) - (a.numericFrom ?? 0);
+    const bWidth = (b.numericTo ?? 0) - (b.numericFrom ?? 0);
+    return aWidth - bWidth;
+  });
+
+  return {
+    zone: matches[0].zone,
+    zoneMode,
+    matchedRow: matches[0],
+  };
+}
+
+function getRateRows(forwarder, destCountry, loadMeters) {
   return STATE.rates.filter((row) => (
     normalizeKey(row.forwarder) === normalizeKey(forwarder)
     && row.originCountry === ORIGIN_COUNTRY
     && row.destCountry === destCountry
     && loadMeters >= row.from
     && loadMeters <= row.to
-    && normalizeKey(row.unit) !== "minimum"
   ));
 }
 
-function findZone(forwarder, destCountry, postalCode) {
-  const zoneMode = getZoneMode(forwarder);
-  const postalValue = Number.parseInt(String(postalCode).replace(/\D/g, ""), 10);
-  if (!Number.isFinite(postalValue)) return null;
+function getMinimumRow(forwarder, destCountry, loadMeters) {
+  const minimumRows = getRateRows(forwarder, destCountry, loadMeters)
+    .filter((row) => normalizeKey(row.unit) === "minimum");
 
-  const matches = STATE.zones.filter((row) => (
-    row.forwarder === zoneMode
-    && row.originCountry === ORIGIN_COUNTRY
-    && row.destCountry === destCountry
-    && postalValue >= row.from
-    && postalValue <= row.to
-  ));
-
-  if (!matches.length) return null;
-  matches.sort((a, b) => (a.to - a.from) - (b.to - b.from));
-  return { zone: matches[0].zone, zoneMode, matchedRow: matches[0] };
+  if (!minimumRows.length) return null;
+  minimumRows.sort((a, b) => (a.to - a.from) - (b.to - b.from));
+  return minimumRows[0];
 }
 
 function findRate(forwarder, destCountry, loadMeters, zone) {
-  const rows = getForwarderRows(forwarder, destCountry, loadMeters);
-  if (!rows.length) return null;
+  const tariffRows = getRateRows(forwarder, destCountry, loadMeters)
+    .filter((row) => normalizeKey(row.unit) !== "minimum");
 
-  rows.sort((a, b) => (a.to - a.from) - (b.to - b.from));
-  const rateRow = rows[0];
-  const basePrice = rateRow.zonePrices.get(zone);
-  if (!Number.isFinite(basePrice)) return { rateRow, basePrice: null };
-  return { rateRow, basePrice };
+  if (!tariffRows.length) return null;
+
+  tariffRows.sort((a, b) => (a.to - a.from) - (b.to - b.from));
+  const rateRow = tariffRows[0];
+  const tariffPrice = rateRow.zonePrices.get(zone);
+  if (!Number.isFinite(tariffPrice)) {
+    return { rateRow, minimumRow: null, tariffPrice: null, minimumPrice: null, appliedBasePrice: null, priceSource: null };
+  }
+
+  const minimumRow = getMinimumRow(forwarder, destCountry, loadMeters);
+  const minimumPrice = minimumRow ? minimumRow.zonePrices.get(zone) : null;
+  const appliedBasePrice = Number.isFinite(minimumPrice)
+    ? Math.max(tariffPrice, minimumPrice)
+    : tariffPrice;
+
+  let priceSource = "Tarif";
+  if (Number.isFinite(minimumPrice) && minimumPrice > tariffPrice) priceSource = "Minimum";
+  if (Number.isFinite(minimumPrice) && minimumPrice === tariffPrice) priceSource = "Tarif / Minimum gleich";
+
+  return {
+    rateRow,
+    minimumRow,
+    tariffPrice,
+    minimumPrice,
+    appliedBasePrice,
+    priceSource,
+  };
 }
 
-function validateInput({ forwarder, destCountry, postalCode, loadMeters }) {
-  if (!forwarder) return "Bitte Dienstleister wählen.";
-  if (!destCountry) return "Bitte Land wählen.";
-  if (!postalCode || String(postalCode).trim().length < 3) return "Bitte eine gültige PLZ eingeben.";
+function validateInput({ destCountry, postalCode, loadMeters }) {
+  if (!destCountry) return "Bitte zuerst ein Land wählen.";
+  if (!postalCode || String(postalCode).trim().length < 2) return "Bitte eine gültige PLZ eingeben.";
   if (!(loadMeters > 0)) return "Lademeter muss größer 0 sein.";
   return null;
 }
 
 function formatBand(row) {
+  if (!row) return "—";
   return `${String(row.from).replace('.', ',')} bis ${String(row.to).replace('.', ',')} ${row.unit || ""}`.trim();
 }
 
-function buildDebugPayload(input, zoneResult, rateResult, floaterPercent, total) {
+function buildCalculationForForwarder(forwarder, destCountry, postalCode, loadMeters) {
+  const zoneResult = findZone(forwarder, destCountry, postalCode);
+  if (!zoneResult) {
+    return { forwarder, success: false, reason: "Keine Zone gefunden." };
+  }
+
+  const rateResult = findRate(forwarder, destCountry, loadMeters, zoneResult.zone);
+  if (!rateResult) {
+    return { forwarder, success: false, reason: "Kein Tarifband gefunden." };
+  }
+
+  if (!Number.isFinite(rateResult.appliedBasePrice)) {
+    return { forwarder, success: false, reason: `Kein Preis für Zone ${zoneResult.zone} im Tarifband.` };
+  }
+
+  const floaterPercent = getFloaterPercent(forwarder);
+  const floaterAmount = round2(rateResult.appliedBasePrice * (floaterPercent / 100));
+  const total = round2(rateResult.appliedBasePrice + floaterAmount);
+
   return {
-    input,
-    zoneMode: zoneResult?.zoneMode ?? null,
-    zoneMatch: zoneResult?.matchedRow ?? null,
-    foundZone: zoneResult?.zone ?? null,
-    rateBand: rateResult?.rateRow ? {
-      forwarder: rateResult.rateRow.forwarder,
-      originCountry: rateResult.rateRow.originCountry,
-      destCountry: rateResult.rateRow.destCountry,
-      from: rateResult.rateRow.from,
-      to: rateResult.rateRow.to,
-      unit: rateResult.rateRow.unit,
-    } : null,
-    basePrice: rateResult?.basePrice ?? null,
+    forwarder,
+    success: true,
+    zone: zoneResult.zone,
+    zoneMode: zoneResult.zoneMode,
+    tariffBand: formatBand(rateResult.rateRow),
+    basePrice: rateResult.appliedBasePrice,
+    tariffPrice: rateResult.tariffPrice,
+    minimumPrice: rateResult.minimumPrice,
+    priceSource: rateResult.priceSource,
     floaterPercent,
+    floaterAmount,
     total,
   };
 }
 
-function downloadText(filename, text, mimeType = "text/plain;charset=utf-8") {
-  const blob = new Blob([text], { type: mimeType });
-  const link = document.createElement("a");
-  link.href = URL.createObjectURL(blob);
-  link.download = filename;
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-  setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+function renderResults(results) {
+  const tbody = document.getElementById("resultsBody");
+  const noResult = document.getElementById("noResults");
+  tbody.innerHTML = "";
+
+  if (!results.length) {
+    noResult.style.display = "block";
+    return;
+  }
+
+  noResult.style.display = "none";
+
+  results.forEach((result, index) => {
+    const tr = document.createElement("tr");
+    if (index === 0) tr.className = "best-row";
+    tr.innerHTML = `
+      <td>${index === 0 ? '<span class="rank-badge">Günstigster</span> ' : ''}${result.forwarder}</td>
+      <td>${result.zone}</td>
+      <td>${result.zoneMode}</td>
+      <td>${result.tariffBand}</td>
+      <td class="right">${money(result.basePrice)}</td>
+      <td class="right">${percent(result.floaterPercent)}</td>
+      <td class="right">${money(result.floaterAmount)}</td>
+      <td class="right"><strong>${money(result.total)}</strong></td>
+      <td>${result.priceSource}</td>
+    `;
+    tbody.appendChild(tr);
+  });
 }
 
 function initCalculatorPage() {
   const form = document.getElementById("calculatorForm");
   if (!form) return;
 
-  const forwarderSelect = document.getElementById("forwarder");
   const countrySelect = document.getElementById("destCountry");
   const postalInput = document.getElementById("postalCode");
   const loadMetersInput = document.getElementById("loadMeters");
-  const floaterInput = document.getElementById("dieselFloater");
   const messageBox = document.getElementById("messageBox");
-  const resultBox = document.getElementById("resultBox");
-  const debugPre = document.getElementById("debugPre");
-  const exportBtn = document.getElementById("exportDebug");
+  const summaryBox = document.getElementById("summaryBox");
 
-  STATE.forwarders.forEach((forwarder) => {
-    const option = document.createElement("option");
-    option.value = forwarder;
-    option.textContent = forwarder;
-    forwarderSelect.appendChild(option);
-  });
+  const countries = Array.from(new Set(
+    STATE.rates
+      .filter((row) => row.originCountry === ORIGIN_COUNTRY)
+      .map((row) => row.destCountry),
+  )).sort();
 
-  const countries = Array.from(new Set(STATE.rates.filter((row) => row.originCountry === ORIGIN_COUNTRY).map((row) => row.destCountry))).sort();
   countries.forEach((country) => {
     const option = document.createElement("option");
     option.value = country;
@@ -316,126 +432,74 @@ function initCalculatorPage() {
     messageBox.style.display = text ? "block" : "none";
   }
 
-  function fillDefaultFloater() {
-    const forwarder = forwarderSelect.value;
-    floaterInput.value = getFloaterPercent(forwarder).toString().replace('.', ',');
-  }
-
-  forwarderSelect.addEventListener("change", fillDefaultFloater);
-  fillDefaultFloater();
-
-  let latestDebug = null;
-
   form.addEventListener("submit", (event) => {
     event.preventDefault();
+
     const input = {
-      forwarder: forwarderSelect.value,
       destCountry: countrySelect.value,
       postalCode: postalInput.value.trim(),
       loadMeters: parseNumberDE(loadMetersInput.value),
-      floaterPercent: parseNumberDE(floaterInput.value),
     };
 
     const validationError = validateInput(input);
     if (validationError) {
       showMessage(validationError, "danger");
-      resultBox.style.display = "none";
-      debugPre.textContent = "";
-      latestDebug = null;
+      document.getElementById("resultsSection").style.display = "none";
+      summaryBox.style.display = "none";
       return;
     }
 
-    const zoneResult = findZone(input.forwarder, input.destCountry, input.postalCode);
-    if (!zoneResult) {
-      showMessage(`Keine Zone gefunden für ${input.destCountry} / ${input.postalCode}.`, "danger");
-      resultBox.style.display = "none";
-      debugPre.textContent = "";
-      latestDebug = null;
+    const successfulResults = [];
+    const errors = [];
+
+    STATE.forwarders.forEach((forwarder) => {
+      const result = buildCalculationForForwarder(forwarder, input.destCountry, input.postalCode, input.loadMeters);
+      if (result.success) successfulResults.push(result);
+      else errors.push(`${forwarder}: ${result.reason}`);
+    });
+
+    successfulResults.sort((a, b) => a.total - b.total || a.forwarder.localeCompare(b.forwarder, "de"));
+
+    if (!successfulResults.length) {
+      showMessage("Für diese Kombination wurde kein berechenbarer Dienstleister gefunden.", "danger");
+      document.getElementById("resultsSection").style.display = "none";
+      summaryBox.style.display = "none";
       return;
     }
 
-    const rateResult = findRate(input.forwarder, input.destCountry, input.loadMeters, zoneResult.zone);
-    if (!rateResult) {
-      showMessage(`Kein Tarifband gefunden für ${input.forwarder}, ${input.destCountry} und ${String(input.loadMeters).replace('.', ',')} Lademeter.`, "danger");
-      resultBox.style.display = "none";
-      debugPre.textContent = "";
-      latestDebug = null;
-      return;
-    }
+    renderResults(successfulResults);
 
-    if (!Number.isFinite(rateResult.basePrice)) {
-      showMessage(`Für Zone ${zoneResult.zone} existiert im gewählten Tarifband kein Preis.`, "danger");
-      resultBox.style.display = "none";
-      debugPre.textContent = "";
-      latestDebug = null;
-      return;
-    }
+    const cheapest = successfulResults[0];
+    document.getElementById("summaryCountry").textContent = input.destCountry;
+    document.getElementById("summaryPostal").textContent = input.postalCode;
+    document.getElementById("summaryLdm").textContent = String(input.loadMeters).replace('.', ',');
+    document.getElementById("summaryCount").textContent = String(successfulResults.length);
+    document.getElementById("summaryBest").textContent = `${cheapest.forwarder} (${money(cheapest.total)})`;
+    summaryBox.style.display = "block";
 
-    const floaterPercent = Number.isFinite(input.floaterPercent) ? input.floaterPercent : 0;
-    const floaterAmount = round2(rateResult.basePrice * (floaterPercent / 100));
-    const total = round2(rateResult.basePrice + floaterAmount);
+    document.getElementById("resultsSection").style.display = "block";
 
-    document.getElementById("metricZone").textContent = String(zoneResult.zone);
-    document.getElementById("metricZoneMode").textContent = zoneResult.zoneMode;
-    document.getElementById("metricBase").textContent = money(rateResult.basePrice);
-    document.getElementById("metricBand").textContent = formatBand(rateResult.rateRow);
-    document.getElementById("metricFloater").textContent = `${floaterPercent.toLocaleString("de-DE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} %`;
-    document.getElementById("metricFloaterAmount").textContent = money(floaterAmount);
-    document.getElementById("metricTotal").textContent = money(total);
-    document.getElementById("metricForwarder").textContent = input.forwarder;
-
-    showMessage("Berechnung erfolgreich durchgeführt.", "success");
-    resultBox.style.display = "block";
-
-    latestDebug = buildDebugPayload(input, zoneResult, rateResult, floaterPercent, total);
-    debugPre.textContent = JSON.stringify(latestDebug, null, 2);
-  });
-
-  exportBtn.addEventListener("click", () => {
-    if (!latestDebug) return;
-    downloadText("trocellen_debug.json", JSON.stringify(latestDebug, null, 2), "application/json;charset=utf-8");
-  });
-}
-
-function initFloaterPage() {
-  const textarea = document.getElementById("floaterEditor");
-  if (!textarea) return;
-
-  const saveBtn = document.getElementById("saveFloaterFile");
-  const resetBtn = document.getElementById("resetFloaterFile");
-  const info = document.getElementById("floaterInfo");
-
-  const payload = {};
-  STATE.forwarders.forEach((forwarder) => {
-    payload[forwarder] = getFloaterPercent(forwarder);
-  });
-  textarea.value = JSON.stringify(payload, null, 2);
-
-  saveBtn.addEventListener("click", () => {
-    try {
-      const parsed = JSON.parse(textarea.value);
-      downloadText("floater.json", JSON.stringify(parsed, null, 2), "application/json;charset=utf-8");
-      info.textContent = "Neue floater.json wurde heruntergeladen.";
-      info.className = "notice success";
-      info.style.display = "block";
-    } catch (error) {
-      info.textContent = `JSON ungültig: ${error.message}`;
-      info.className = "notice danger";
-      info.style.display = "block";
+    if (errors.length) {
+      showMessage(`Berechnung erfolgreich. ${successfulResults.length} Dienstleister gefunden, ${errors.length} ohne Ergebnis.`, "success");
+    } else {
+      showMessage(`Berechnung erfolgreich. ${successfulResults.length} Dienstleister gefunden.`, "success");
     }
   });
 
-  resetBtn.addEventListener("click", () => {
-    textarea.value = JSON.stringify(payload, null, 2);
-    info.style.display = "none";
+  form.addEventListener("reset", () => {
+    setTimeout(() => {
+      showMessage("", "warn");
+      summaryBox.style.display = "none";
+      document.getElementById("resultsSection").style.display = "none";
+      document.getElementById("resultsBody").innerHTML = "";
+      document.getElementById("noResults").style.display = "block";
+    }, 0);
   });
 }
 
 async function boot() {
   await Promise.all([loadZones(), loadRates(), loadFloaterConfig()]);
-  STATE.ready = true;
   initCalculatorPage();
-  initFloaterPage();
 }
 
 window.addEventListener("DOMContentLoaded", () => {

@@ -8,31 +8,21 @@
 </head>
 <body>
   <main>
-    <header class="page-header">
+    <header class="page-header compact-header">
       <p class="eyebrow">Trocellen</p>
       <h1>Preisrechner</h1>
-      <p class="subtle">1 Absenderstandort, Berechnung per Land, PLZ, Dienstleister, Lademeter und Dieselfloater.</p>
-      <div class="actions">
-        <a class="button secondary" href="index.html">Start</a>
-        <a class="button secondary" href="floater_editor.html">Floater bearbeiten</a>
-      </div>
+      <p class="subtle">Land wählen, PLZ eingeben, Lademeter angeben – dann werden alle verfügbaren Dienstleister mit Floater und Gesamtpreis berechnet.</p>
     </header>
 
     <div id="fatalError" class="notice danger"></div>
 
-    <section class="layout">
+    <section class="layout wide-layout">
       <form id="calculatorForm" class="card panel">
         <h2>Eingaben</h2>
+
         <div class="fields">
           <div class="field">
-            <label for="forwarder">Dienstleister</label>
-            <select id="forwarder">
-              <option value="">Bitte wählen</option>
-            </select>
-          </div>
-
-          <div class="field">
-            <label for="destCountry">Zielland</label>
+            <label for="destCountry">Land</label>
             <select id="destCountry">
               <option value="">Bitte wählen</option>
             </select>
@@ -40,88 +30,79 @@
 
           <div class="field">
             <label for="postalCode">PLZ Empfänger</label>
-            <input id="postalCode" type="text" placeholder="z. B. 28195 oder 75008" />
+            <input id="postalCode" type="text" placeholder="z. B. 28195 oder SW1A 1AA" />
           </div>
 
           <div class="field">
             <label for="loadMeters">Lademeter</label>
             <input id="loadMeters" type="number" min="0" step="0.1" placeholder="z. B. 4,5" />
           </div>
-
-          <div class="field">
-            <label for="dieselFloater">Dieselfloater in %</label>
-            <input id="dieselFloater" type="number" step="0.01" placeholder="z. B. 12,50" />
-            <p class="help">Standardwert kommt aus <code>floater.json</code> und kann vor der Berechnung überschrieben werden.</p>
-          </div>
         </div>
 
         <div class="actions" style="margin-top: 18px;">
-          <button class="primary" type="submit">Preis berechnen</button>
+          <button class="primary" type="submit">Preise berechnen</button>
           <button class="secondary" type="reset">Zurücksetzen</button>
         </div>
 
         <div id="messageBox" class="notice warn" style="margin-top: 16px;"></div>
       </form>
 
-      <section class="card panel">
-        <div id="resultBox" style="display:none;">
-          <div class="toolbar">
-            <h2>Ergebnis</h2>
-            <button id="exportDebug" class="secondary" type="button">Debug JSON herunterladen</button>
+      <section class="card panel summary-panel" id="summaryBox" style="display:none;">
+        <div class="summary-grid">
+          <div>
+            <span class="metric-label">Land</span>
+            <div class="metric-value" id="summaryCountry">—</div>
           </div>
-
-          <div class="result-grid">
-            <div class="metric">
-              <span class="metric-label">Dienstleister</span>
-              <div id="metricForwarder" class="metric-value">—</div>
-            </div>
-            <div class="metric">
-              <span class="metric-label">Gefundene Zone</span>
-              <div id="metricZone" class="metric-value">—</div>
-              <small>Zonenlogik: <span id="metricZoneMode">—</span></small>
-            </div>
-            <div class="metric">
-              <span class="metric-label">Basispreis</span>
-              <div id="metricBase" class="metric-value">—</div>
-              <small>aus dem passenden Tarifband</small>
-            </div>
-            <div class="metric">
-              <span class="metric-label">Tarifband</span>
-              <div id="metricBand" class="metric-value">—</div>
-            </div>
-            <div class="metric">
-              <span class="metric-label">Dieselfloater</span>
-              <div id="metricFloater" class="metric-value">—</div>
-              <small>Aufschlag: <span id="metricFloaterAmount">—</span></small>
-            </div>
-            <div class="metric">
-              <span class="metric-label">Endpreis</span>
-              <div id="metricTotal" class="metric-value">—</div>
-            </div>
+          <div>
+            <span class="metric-label">PLZ</span>
+            <div class="metric-value" id="summaryPostal">—</div>
           </div>
-
-          <h3>Debug</h3>
-          <pre id="debugPre" class="debug"></pre>
+          <div>
+            <span class="metric-label">Lademeter</span>
+            <div class="metric-value" id="summaryLdm">—</div>
+          </div>
+          <div>
+            <span class="metric-label">Dienstleister mit Ergebnis</span>
+            <div class="metric-value" id="summaryCount">—</div>
+          </div>
         </div>
-
-        <div class="table-wrap">
-          <table class="table">
-            <thead>
-              <tr>
-                <th>Regel</th>
-                <th>Beschreibung</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr><td><span class="badge">Zone</span></td><td><code>ALL</code> gilt für alle Dienstleister außer <code>Morrisson</code>.</td></tr>
-              <tr><td><span class="badge">Morrisson</span></td><td>Für <code>Morrisson</code> wird die eigene Zonentabelle verwendet.</td></tr>
-              <tr><td><span class="badge">Origin</span></td><td>Absenderland ist fest auf <code>DE</code> gesetzt.</td></tr>
-              <tr><td><span class="badge">Tarif</span></td><td>Tarifzeile wird über Dienstleister, Zielland und Lademeter-Band gesucht.</td></tr>
-              <tr><td><span class="badge">Preis</span></td><td>Endpreis = Basispreis + Dieselfloater.</td></tr>
-            </tbody>
-          </table>
+        <div class="best-price-box">
+          <span class="metric-label">Günstigster Anbieter</span>
+          <div class="best-price" id="summaryBest">—</div>
         </div>
       </section>
+    </section>
+
+    <section id="resultsSection" class="card panel" style="display:none; margin-top: 20px;">
+      <div class="toolbar">
+        <div>
+          <h2 style="margin-bottom: 4px;">Preise aller Dienstleister</h2>
+          <p class="muted" style="margin:0;">Sortiert nach Gesamtpreis, günstigster Anbieter ganz oben.</p>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Dienstleister</th>
+              <th>Zone</th>
+              <th>Zonenlogik</th>
+              <th>Tarifband</th>
+              <th class="right">Basispreis</th>
+              <th class="right">Floater (%)</th>
+              <th class="right">Floater (€)</th>
+              <th class="right">Gesamtpreis</th>
+              <th>Grundlage</th>
+            </tr>
+          </thead>
+          <tbody id="resultsBody">
+            <tr id="noResults">
+              <td colspan="9" class="muted">Noch keine Berechnung.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </section>
   </main>
   <script src="app.js"></script>
