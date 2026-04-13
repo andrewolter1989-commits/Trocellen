@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Trocellen Floater Editor</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main>
+    <header class="page-header">
+      <p class="eyebrow">Trocellen</p>
+      <h1>Dieselfloater Editor</h1>
+      <p class="subtle">Pflege hier die Standard-Floater pro Dienstleister und lade danach die neue <code>floater.json</code> herunter.</p>
+      <div class="actions">
+        <a class="button secondary" href="index.html">Start</a>
+        <a class="button secondary" href="preisrechner.html">Preisrechner</a>
+      </div>
+    </header>
+
+    <div id="fatalError" class="notice danger"></div>
+
+    <section class="card panel editor-grid">
+      <div>
+        <h2>floater.json</h2>
+        <p class="muted">Format: JSON mit Dienstleister als Schlüssel und Prozentwert als Zahl.</p>
+      </div>
+      <textarea id="floaterEditor" rows="24"></textarea>
+      <div class="actions">
+        <button id="saveFloaterFile" class="primary" type="button">floater.json herunterladen</button>
+        <button id="resetFloaterFile" class="secondary" type="button">Zurücksetzen</button>
+      </div>
+      <div id="floaterInfo" class="notice warn"></div>
+    </section>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>

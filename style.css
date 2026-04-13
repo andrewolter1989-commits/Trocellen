@@ -1,0 +1,144 @@
+
+:root {
+  --primary: #005a99;
+  --secondary: #00a99d;
+  --bg: #f3f6f8;
+  --card: #ffffff;
+  --border: #d7dee4;
+  --text: #24323f;
+  --muted: #617080;
+  --success-bg: #eaf7ef;
+  --warn-bg: #fff7e0;
+  --danger-bg: #fdeaea;
+  --shadow: 0 8px 24px rgba(17, 27, 39, 0.08);
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: Arial, Helvetica, sans-serif;
+  color: var(--text);
+  background: var(--bg);
+}
+main { max-width: 1220px; margin: 0 auto; padding: 32px 20px 48px; }
+h1, h2, h3, p { margin-top: 0; }
+code { background: #eef3f7; padding: 2px 6px; border-radius: 6px; }
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  box-shadow: var(--shadow);
+}
+.landing { min-height: 100vh; display: flex; align-items: center; }
+.hero {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 24px;
+  padding: 28px;
+  width: 100%;
+}
+.eyebrow {
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--secondary);
+  font-weight: 700;
+  font-size: .85rem;
+}
+.lead { color: var(--muted); line-height: 1.5; max-width: 60ch; }
+.hero-actions, .actions { display: flex; gap: 12px; flex-wrap: wrap; }
+.button, button {
+  appearance: none;
+  border: 0;
+  border-radius: 10px;
+  padding: 12px 18px;
+  font-size: 1rem;
+  text-decoration: none;
+  cursor: pointer;
+}
+.button.primary, button.primary { background: var(--primary); color: #fff; }
+.button.secondary, button.secondary { background: transparent; color: var(--text); border: 1px solid var(--border); }
+button:disabled { opacity: 0.55; cursor: not-allowed; }
+.hero-box {
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 18px;
+  background: linear-gradient(180deg, #fdfefe, #f4fbfa);
+}
+.hero-box ul { padding-left: 20px; margin: 0; line-height: 1.6; }
+.page-header { margin-bottom: 16px; }
+.page-header .subtle { color: var(--muted); }
+.layout {
+  display: grid;
+  grid-template-columns: 420px 1fr;
+  gap: 20px;
+  align-items: start;
+}
+.panel { padding: 20px; }
+.fields { display: grid; gap: 14px; }
+.field { display: grid; gap: 8px; }
+.field label { font-weight: 700; }
+.field input, .field select, textarea {
+  width: 100%;
+  padding: 11px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-size: 1rem;
+  background: #fff;
+}
+.help { color: var(--muted); font-size: .92rem; line-height: 1.4; }
+.notice {
+  display: none;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  line-height: 1.45;
+}
+.notice.warn { background: var(--warn-bg); }
+.notice.danger { background: var(--danger-bg); }
+.notice.success { background: var(--success-bg); }
+.result-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 16px;
+}
+.metric {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 14px;
+  background: #fff;
+}
+.metric-label { display: block; color: var(--muted); font-size: .92rem; margin-bottom: 6px; }
+.metric-value { font-size: 1.35rem; font-weight: 700; }
+.metric small { display: block; color: var(--muted); margin-top: 6px; }
+.table-wrap { overflow: auto; border: 1px solid var(--border); border-radius: 14px; }
+.table { width: 100%; border-collapse: collapse; background: #fff; }
+.table th, .table td { padding: 10px 12px; border-bottom: 1px solid var(--border); text-align: left; }
+.table th { background: #f6fafc; }
+.table td.right, .table th.right { text-align: right; }
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 5px 10px;
+  font-size: .9rem;
+  background: #fff;
+}
+.debug {
+  background: #111827;
+  color: #ecf3ff;
+  padding: 16px;
+  border-radius: 14px;
+  overflow: auto;
+  font-size: .92rem;
+  line-height: 1.5;
+}
+.toolbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
+.muted { color: var(--muted); }
+.editor-grid { display: grid; gap: 16px; }
+@media (max-width: 960px) {
+  .hero, .layout { grid-template-columns: 1fr; }
+  .result-grid { grid-template-columns: 1fr; }
+}

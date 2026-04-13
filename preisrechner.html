@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Trocellen Preisrechner</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main>
+    <header class="page-header">
+      <p class="eyebrow">Trocellen</p>
+      <h1>Preisrechner</h1>
+      <p class="subtle">1 Absenderstandort, Berechnung per Land, PLZ, Dienstleister, Lademeter und Dieselfloater.</p>
+      <div class="actions">
+        <a class="button secondary" href="index.html">Start</a>
+        <a class="button secondary" href="floater_editor.html">Floater bearbeiten</a>
+      </div>
+    </header>
+
+    <div id="fatalError" class="notice danger"></div>
+
+    <section class="layout">
+      <form id="calculatorForm" class="card panel">
+        <h2>Eingaben</h2>
+        <div class="fields">
+          <div class="field">
+            <label for="forwarder">Dienstleister</label>
+            <select id="forwarder">
+              <option value="">Bitte wählen</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="destCountry">Zielland</label>
+            <select id="destCountry">
+              <option value="">Bitte wählen</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="postalCode">PLZ Empfänger</label>
+            <input id="postalCode" type="text" placeholder="z. B. 28195 oder 75008" />
+          </div>
+
+          <div class="field">
+            <label for="loadMeters">Lademeter</label>
+            <input id="loadMeters" type="number" min="0" step="0.1" placeholder="z. B. 4,5" />
+          </div>
+
+          <div class="field">
+            <label for="dieselFloater">Dieselfloater in %</label>
+            <input id="dieselFloater" type="number" step="0.01" placeholder="z. B. 12,50" />
+            <p class="help">Standardwert kommt aus <code>floater.json</code> und kann vor der Berechnung überschrieben werden.</p>
+          </div>
+        </div>
+
+        <div class="actions" style="margin-top: 18px;">
+          <button class="primary" type="submit">Preis berechnen</button>
+          <button class="secondary" type="reset">Zurücksetzen</button>
+        </div>
+
+        <div id="messageBox" class="notice warn" style="margin-top: 16px;"></div>
+      </form>
+
+      <section class="card panel">
+        <div id="resultBox" style="display:none;">
+          <div class="toolbar">
+            <h2>Ergebnis</h2>
+            <button id="exportDebug" class="secondary" type="button">Debug JSON herunterladen</button>
+          </div>
+
+          <div class="result-grid">
+            <div class="metric">
+              <span class="metric-label">Dienstleister</span>
+              <div id="metricForwarder" class="metric-value">—</div>
+            </div>
+            <div class="metric">
+              <span class="metric-label">Gefundene Zone</span>
+              <div id="metricZone" class="metric-value">—</div>
+              <small>Zonenlogik: <span id="metricZoneMode">—</span></small>
+            </div>
+            <div class="metric">
+              <span class="metric-label">Basispreis</span>
+              <div id="metricBase" class="metric-value">—</div>
+              <small>aus dem passenden Tarifband</small>
+            </div>
+            <div class="metric">
+              <span class="metric-label">Tarifband</span>
+              <div id="metricBand" class="metric-value">—</div>
+            </div>
+            <div class="metric">
+              <span class="metric-label">Dieselfloater</span>
+              <div id="metricFloater" class="metric-value">—</div>
+              <small>Aufschlag: <span id="metricFloaterAmount">—</span></small>
+            </div>
+            <div class="metric">
+              <span class="metric-label">Endpreis</span>
+              <div id="metricTotal" class="metric-value">—</div>
+            </div>
+          </div>
+
+          <h3>Debug</h3>
+          <pre id="debugPre" class="debug"></pre>
+        </div>
+
+        <div class="table-wrap">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Regel</th>
+                <th>Beschreibung</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td><span class="badge">Zone</span></td><td><code>ALL</code> gilt für alle Dienstleister außer <code>Morrisson</code>.</td></tr>
+              <tr><td><span class="badge">Morrisson</span></td><td>Für <code>Morrisson</code> wird die eigene Zonentabelle verwendet.</td></tr>
+              <tr><td><span class="badge">Origin</span></td><td>Absenderland ist fest auf <code>DE</code> gesetzt.</td></tr>
+              <tr><td><span class="badge">Tarif</span></td><td>Tarifzeile wird über Dienstleister, Zielland und Lademeter-Band gesucht.</td></tr>
+              <tr><td><span class="badge">Preis</span></td><td>Endpreis = Basispreis + Dieselfloater.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </section>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>
