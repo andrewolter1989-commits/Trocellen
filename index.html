@@ -7,20 +7,17 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <main>
-    <header class="page-header compact-header">
+  <main class="app-shell">
+    <header class="hero-header">
       <p class="eyebrow">Trocellen</p>
       <h1>Preisrechner</h1>
-      <p class="subtle">Land wählen, PLZ eingeben, Lademeter angeben – dann werden alle verfügbaren Dienstleister mit Floater und Gesamtpreis berechnet.</p>
     </header>
 
     <div id="fatalError" class="notice danger"></div>
 
-    <section class="layout wide-layout">
-      <form id="calculatorForm" class="card panel">
-        <h2>Eingaben</h2>
-
-        <div class="fields">
+    <section class="calculator-shell card">
+      <form id="calculatorForm" class="calculator-form" novalidate>
+        <div class="form-grid">
           <div class="field">
             <label for="destCountry">Land</label>
             <select id="destCountry">
@@ -39,66 +36,52 @@
           </div>
         </div>
 
-        <div class="actions" style="margin-top: 18px;">
-          <button class="primary" type="submit">Preise berechnen</button>
-          <button class="secondary" type="reset">Zurücksetzen</button>
+        <div class="form-actions">
+          <button class="primary action-button" type="submit">Berechnen</button>
+          <button class="secondary action-button" type="reset">Zurücksetzen</button>
         </div>
-
-        <div id="messageBox" class="notice warn" style="margin-top: 16px;"></div>
       </form>
 
-      <section class="card panel summary-panel" id="summaryBox" style="display:none;">
-        <div class="summary-grid">
-          <div>
-            <span class="metric-label">Land</span>
-            <div class="metric-value" id="summaryCountry">—</div>
-          </div>
-          <div>
-            <span class="metric-label">PLZ</span>
-            <div class="metric-value" id="summaryPostal">—</div>
-          </div>
-          <div>
-            <span class="metric-label">Lademeter</span>
-            <div class="metric-value" id="summaryLdm">—</div>
-          </div>
-          <div>
-            <span class="metric-label">Dienstleister mit Ergebnis</span>
-            <div class="metric-value" id="summaryCount">—</div>
-          </div>
+      <div id="messageBox" class="notice warn"></div>
+
+      <section id="summaryBox" class="summary-box" style="display:none;">
+        <div class="summary-left">
+          <div class="summary-row"><strong>Land:</strong> <span id="summaryCountry">—</span></div>
+          <div class="summary-row"><strong>PLZ:</strong> <span id="summaryPostal">—</span></div>
+          <div class="summary-row"><strong>Lademeter:</strong> <span id="summaryLdm">—</span></div>
+          <div class="summary-row"><strong>Dienstleister mit Ergebnis:</strong> <span id="summaryCount">—</span></div>
         </div>
-        <div class="best-price-box">
-          <span class="metric-label">Günstigster Anbieter</span>
-          <div class="best-price" id="summaryBest">—</div>
+        <div class="summary-right">
+          <div class="summary-best-label">Günstigster Anbieter</div>
+          <div class="summary-best" id="summaryBest">—</div>
         </div>
       </section>
     </section>
 
-    <section id="resultsSection" class="card panel" style="display:none; margin-top: 20px;">
-      <div class="toolbar">
+    <section id="resultsSection" class="results-shell card" style="display:none;">
+      <div class="results-head">
         <div>
-          <h2 style="margin-bottom: 4px;">Preise aller Dienstleister</h2>
-          <p class="muted" style="margin:0;">Sortiert nach Gesamtpreis, günstigster Anbieter ganz oben.</p>
+          <h2>Preise aller Dienstleister</h2>
+          <p class="muted">Sortiert nach Gesamtpreis, günstigster Anbieter ganz oben.</p>
         </div>
       </div>
 
       <div class="table-wrap">
-        <table class="table">
+        <table class="price-table">
           <thead>
             <tr>
               <th>Dienstleister</th>
               <th>Zone</th>
-              <th>Zonenlogik</th>
-              <th>Tarifband</th>
-              <th class="right">Basispreis</th>
+              <th class="right">Basis (€)</th>
               <th class="right">Floater (%)</th>
               <th class="right">Floater (€)</th>
-              <th class="right">Gesamtpreis</th>
-              <th>Grundlage</th>
+              <th class="right">Preis (€)</th>
+              <th>Grund</th>
             </tr>
           </thead>
           <tbody id="resultsBody">
             <tr id="noResults">
-              <td colspan="9" class="muted">Noch keine Berechnung.</td>
+              <td colspan="7" class="muted">Noch keine Berechnung.</td>
             </tr>
           </tbody>
         </table>
