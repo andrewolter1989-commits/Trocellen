@@ -274,6 +274,40 @@ function findZone(forwarder, destCountry, postalCode) {
   };
 }
 
+
+function getCountryZoneStats(destCountry) {
+  const rows = STATE.zones.filter((row) => (
+    normalizeKey(row.forwarder) === normalizeKey(DEFAULT_ZONE_MODE)
+    && row.originCountry === ORIGIN_COUNTRY
+    && row.destCountry === destCountry
+  ));
+  return { count: rows.length };
+}
+
+function diagnoseNoResults(destCountry, postalCode, loadMeters) {
+  const zoneHits = [];
+  const tariffHits = [];
+
+  STATE.forwarders.forEach((forwarder) => {
+    const zoneResult = findZone(forwarder, destCountry, postalCode);
+    if (zoneResult) {
+      zoneHits.push({ forwarder, zone: zoneResult.zone, zoneMode: zoneResult.zoneMode });
+      const rateResult = findRate(forwarder, destCountry, loadMeters, zoneResult.zone);
+      if (rateResult && Number.isFinite(rateResult.appliedBasePrice)) {
+        tariffHits.push(forwarder);
+      }
+    }
+  });
+
+  if (!zoneHits.length) {
+    return `Keine Zone gefunden. Für ${destCountry} ist die PLZ ${postalCode} in der zones.csv aktuell nicht abgedeckt.`;
+  }
+  if (!tariffHits.length) {
+    return `Zone gefunden (${zoneHits[0].zone}), aber kein passendes Tarifband in rates.csv für ${String(loadMeters).replace('.', ',')} Lademeter.`;
+  }
+  return 'Für diese Kombination wurde kein berechenbarer Dienstleister gefunden.';
+}
+
 function getRateRows(forwarder, destCountry, loadMeters) {
   return STATE.rates.filter((row) => (
     normalizeKey(row.forwarder) === normalizeKey(forwarder)
@@ -375,15 +409,17 @@ function buildCalculationForForwarder(forwarder, destCountry, postalCode, loadMe
 
 function renderResults(results) {
   const tbody = document.getElementById("resultsBody");
-  const noResult = document.getElementById("noResults");
+  if (!tbody) return;
+
   tbody.innerHTML = "";
 
   if (!results.length) {
-    noResult.style.display = "block";
+    const tr = document.createElement("tr");
+    tr.id = "noResults";
+    tr.innerHTML = '<td colspan="9" class="muted">Keine berechenbaren Ergebnisse gefunden.</td>';
+    tbody.appendChild(tr);
     return;
   }
-
-  noResult.style.display = "none";
 
   results.forEach((result, index) => {
     const tr = document.createElement("tr");
@@ -461,7 +497,7 @@ function initCalculatorPage() {
     successfulResults.sort((a, b) => a.total - b.total || a.forwarder.localeCompare(b.forwarder, "de"));
 
     if (!successfulResults.length) {
-      showMessage("Für diese Kombination wurde kein berechenbarer Dienstleister gefunden.", "danger");
+      showMessage(diagnoseNoResults(input.destCountry, input.postalCode, input.loadMeters), "danger");
       document.getElementById("resultsSection").style.display = "none";
       summaryBox.style.display = "none";
       return;
@@ -489,10 +525,13 @@ function initCalculatorPage() {
   form.addEventListener("reset", () => {
     setTimeout(() => {
       showMessage("", "warn");
-      summaryBox.style.display = "none";
-      document.getElementById("resultsSection").style.display = "none";
-      document.getElementById("resultsBody").innerHTML = "";
-      document.getElementById("noResults").style.display = "block";
+      if (summaryBox) summaryBox.style.display = "none";
+      const resultsSection = document.getElementById("resultsSection");
+      if (resultsSection) resultsSection.style.display = "none";
+      const resultsBody = document.getElementById("resultsBody");
+      if (resultsBody) {
+        resultsBody.innerHTML = '<tr id="noResults"><td colspan="9" class="muted">Noch keine Berechnung.</td></tr>';
+      }
     }, 0);
   });
 }
