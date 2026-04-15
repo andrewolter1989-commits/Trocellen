@@ -60,7 +60,7 @@ body {
 
 .calculator-form {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 190px;
+  grid-template-columns: 1fr;
   gap: 16px;
   align-items: end;
 }
@@ -71,11 +71,12 @@ body {
 }
 
 .form-grid-top {
-  grid-template-columns: 1.05fr 1.05fr 1.75fr;
+  grid-template-columns: minmax(180px, 1fr) minmax(220px, 1fr) minmax(320px, 1.4fr);
+  align-items: end;
 }
 
 .form-grid-bottom {
-  grid-template-columns: minmax(240px, 320px);
+  grid-template-columns: minmax(220px, 320px);
 }
 
 .field { display: grid; gap: 8px; }
@@ -87,6 +88,7 @@ body {
 .field input,
 .field select {
   width: 100%;
+  max-width: 100%;
   height: 46px;
   border: 1px solid var(--border);
   border-radius: 10px;
@@ -148,7 +150,9 @@ body {
 
 .form-actions {
   display: grid;
+  grid-template-columns: repeat(2, minmax(180px, 220px));
   gap: 12px;
+  justify-content: start;
 }
 
 button {
@@ -285,9 +289,6 @@ button.secondary {
 }
 
 @media (max-width: 980px) {
-  .calculator-form {
-    grid-template-columns: 1fr;
-  }
   .form-grid-top,
   .form-grid-bottom {
     grid-template-columns: 1fr;
@@ -311,4 +312,13 @@ button.secondary {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+}
+
+
+#loadMetersField {
+  min-width: 0;
+}
+
+#loadMetersField input {
+  width: 100%;
 }
