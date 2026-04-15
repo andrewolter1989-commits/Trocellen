@@ -2,6 +2,18 @@ const ORIGIN_COUNTRY = "DE";
 const DEFAULT_ZONE_MODE = "ALL";
 const PRICE_SENTINEL = 99999;
 
+const POSTAL_PLACEHOLDERS = {
+  DE: "z. B. 24939",
+  NL: "z. B. 1012 AB",
+  BE: "z. B. 1000",
+  FR: "z. B. 75008",
+  IT: "z. B. 20121",
+  DK: "z. B. 8000",
+  SE: "z. B. 114 55",
+  SK: "z. B. 811 01",
+  GB: "z. B. SW1A 1AA",
+};
+
 const STATE = {
   rates: [],
   zones: [],
@@ -40,6 +52,27 @@ function normalizePostal(value) {
     .toUpperCase()
     .replace(/\s+/g, "")
     .trim();
+}
+
+function normalizePostalByCountry(country, value) {
+  const normalizedCountry = String(country ?? "").toUpperCase().trim();
+  const base = String(value ?? "").toUpperCase().trim();
+  if (!base) return "";
+
+  if (["GB", "SE", "SK"].includes(normalizedCountry)) {
+    return base.replace(/[^A-Z0-9]/g, "");
+  }
+
+  return base.replace(/\s+/g, "");
+}
+
+function getGbZoneKey(postalCode) {
+  const postal = normalizePostalByCountry("GB", postalCode);
+  if (!postal) return "";
+
+  const outwardMatch = postal.match(/^[A-Z]{1,2}\d[A-Z\d]?/);
+  const outward = outwardMatch ? outwardMatch[0] : postal;
+  return outward.slice(0, 2);
 }
 
 function parseNumberFlexible(value) {
@@ -188,8 +221,8 @@ async function loadZones() {
         forwarder: String(row[iForwarder] ?? "").trim(),
         originCountry: String(row[iOrigin] ?? "").trim(),
         destCountry: String(row[iDest] ?? "").trim(),
-        fromNorm: normalizePostal(fromRaw),
-        toNorm: normalizePostal(toRaw),
+        fromNorm: normalizePostalByCountry(row[iDest], fromRaw),
+        toNorm: normalizePostalByCountry(row[iDest], toRaw),
         numericFrom: isNumericZoneValue(fromRaw) ? Number.parseInt(fromRaw, 10) : null,
         numericTo: isNumericZoneValue(toRaw) ? Number.parseInt(toRaw, 10) : null,
         zone: Number.parseInt(String(row[iZone]).trim(), 10),
@@ -254,8 +287,19 @@ async function loadFloaterConfig() {
 }
 
 function postalMatchesZone(row, postalCode) {
-  const postal = normalizePostal(postalCode);
+  const country = String(row.destCountry ?? "").toUpperCase().trim();
+  const postal = normalizePostalByCountry(country, postalCode);
   if (!postal) return false;
+
+  if (country === "GB") {
+    const gbKey = getGbZoneKey(postal);
+    if (!gbKey) return false;
+    const from = row.fromNorm;
+    const to = row.toNorm;
+    if (!from || !to) return false;
+    if (from === to) return gbKey === from;
+    return gbKey >= from && gbKey <= to;
+  }
 
   if (row.numericFrom != null && row.numericTo != null && /^\d+$/.test(postal)) {
     const postalNum = Number.parseInt(postal, 10);
@@ -372,7 +416,7 @@ function findRate(forwarder, destCountry, loadMeters, zone) {
 
 function getSelectedShipmentType() {
   const selected = document.querySelector('input[name="shipmentType"]:checked');
-  return selected?.value || "teilladung";
+  return selected?.value || "ftl";
 }
 
 function getEffectiveLoadMeters(shipmentType, loadMetersInput) {
@@ -478,6 +522,15 @@ function renderResults(results) {
   });
 }
 
+function updatePostalPlaceholder() {
+  const countrySelect = document.getElementById("destCountry");
+  const postalInput = document.getElementById("postalCode");
+  if (!countrySelect || !postalInput) return;
+
+  const country = String(countrySelect.value || "").toUpperCase();
+  postalInput.placeholder = POSTAL_PLACEHOLDERS[country] || "z. B. 24939";
+}
+
 function updateTransportUi() {
   const shipmentType = getSelectedShipmentType();
   const loadMetersField = document.getElementById("loadMetersField");
@@ -527,7 +580,9 @@ function initCalculatorPage() {
     messageBox.style.display = text ? "block" : "none";
   }
 
+  countrySelect?.addEventListener("change", updatePostalPlaceholder);
   transportSwitch?.addEventListener("change", updateTransportUi);
+  updatePostalPlaceholder();
   updateTransportUi();
 
   form.addEventListener("submit", (event) => {
@@ -594,8 +649,9 @@ function initCalculatorPage() {
 
   form.addEventListener("reset", () => {
     setTimeout(() => {
-      const teilladungRadio = document.querySelector('input[name="shipmentType"][value="teilladung"]');
-      if (teilladungRadio) teilladungRadio.checked = true;
+      const ftlRadio = document.querySelector('input[name="shipmentType"][value="ftl"]');
+      if (ftlRadio) ftlRadio.checked = true;
+      updatePostalPlaceholder();
       updateTransportUi();
       showMessage("", "warn");
       summaryBox.style.display = "none";
