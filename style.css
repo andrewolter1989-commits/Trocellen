@@ -1,4 +1,3 @@
-
 :root {
   --primary: #0b6287;
   --primary-dark: #084862;
@@ -68,12 +67,20 @@ body {
 
 .form-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(180px, 1fr));
   gap: 16px;
 }
 
+.form-grid-top {
+  grid-template-columns: 1.05fr 1.05fr 1.75fr;
+}
+
+.form-grid-bottom {
+  grid-template-columns: minmax(240px, 320px);
+}
+
 .field { display: grid; gap: 8px; }
-.field label {
+.field label,
+.transport-field legend {
   font-weight: 700;
   font-size: 0.98rem;
 }
@@ -87,6 +94,56 @@ body {
   padding: 10px 14px;
   font-size: 1rem;
   color: var(--text);
+}
+.field-hint {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.transport-field {
+  min-width: 0;
+  border: 0;
+  padding: 0;
+  margin: 0;
+}
+
+.transport-switch {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  min-height: 46px;
+}
+
+.transport-option {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+.transport-option input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+.transport-option span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 116px;
+  padding: 12px 18px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: #fff;
+  color: var(--text);
+  font-size: 0.98rem;
+  font-weight: 700;
+  transition: all .16s ease;
+}
+.transport-option.active span,
+.transport-option input:checked + span {
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
+  box-shadow: 0 8px 18px rgba(11, 98, 135, 0.14);
 }
 
 .form-actions {
@@ -218,11 +275,21 @@ button.secondary {
   font-size: 0.92rem;
 }
 
+@media (max-width: 1100px) {
+  .form-grid-top {
+    grid-template-columns: 1fr 1fr;
+  }
+  .transport-field {
+    grid-column: 1 / -1;
+  }
+}
+
 @media (max-width: 980px) {
   .calculator-form {
     grid-template-columns: 1fr;
   }
-  .form-grid {
+  .form-grid-top,
+  .form-grid-bottom {
     grid-template-columns: 1fr;
   }
   .form-actions {
@@ -233,5 +300,15 @@ button.secondary {
   }
   .summary-right {
     text-align: left;
+  }
+  .transport-option span {
+    min-width: 96px;
+  }
+}
+
+@media (max-width: 640px) {
+  .transport-switch {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }

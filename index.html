@@ -17,7 +17,7 @@
 
     <section class="calculator-shell card">
       <form id="calculatorForm" class="calculator-form" novalidate>
-        <div class="form-grid">
+        <div class="form-grid form-grid-top">
           <div class="field">
             <label for="destCountry">Land</label>
             <select id="destCountry">
@@ -30,9 +30,34 @@
             <input id="postalCode" type="text" placeholder="z. B. 28195 oder SW1A 1AA" />
           </div>
 
-          <div class="field">
+          <fieldset class="field transport-field">
+            <legend>Transportart</legend>
+            <div class="transport-switch" id="transportSwitch">
+              <label class="transport-option active">
+                <input type="radio" name="shipmentType" value="teilladung" checked />
+                <span>Teilladung</span>
+              </label>
+              <label class="transport-option">
+                <input type="radio" name="shipmentType" value="ftl" />
+                <span>FTL</span>
+              </label>
+              <label class="transport-option">
+                <input type="radio" name="shipmentType" value="mega" />
+                <span>Mega</span>
+              </label>
+              <label class="transport-option">
+                <input type="radio" name="shipmentType" value="jumbo" />
+                <span>Jumbo</span>
+              </label>
+            </div>
+          </fieldset>
+        </div>
+
+        <div class="form-grid form-grid-bottom">
+          <div class="field" id="loadMetersField">
             <label for="loadMeters">Lademeter</label>
-            <input id="loadMeters" type="number" min="0" step="0.1" placeholder="z. B. 4,5" />
+            <input id="loadMeters" type="text" inputmode="decimal" placeholder="z. B. 7,5" />
+            <div class="field-hint">Nur bei Teilladung erforderlich.</div>
           </div>
         </div>
 
@@ -48,7 +73,8 @@
         <div class="summary-left">
           <div class="summary-row"><strong>Land:</strong> <span id="summaryCountry">—</span></div>
           <div class="summary-row"><strong>PLZ:</strong> <span id="summaryPostal">—</span></div>
-          <div class="summary-row"><strong>Lademeter:</strong> <span id="summaryLdm">—</span></div>
+          <div class="summary-row"><strong>Transportart:</strong> <span id="summaryShipmentType">—</span></div>
+          <div class="summary-row" id="summaryLdmRow"><strong>Lademeter:</strong> <span id="summaryLdm">—</span></div>
           <div class="summary-row"><strong>Dienstleister mit Ergebnis:</strong> <span id="summaryCount">—</span></div>
         </div>
         <div class="summary-right">
@@ -62,7 +88,7 @@
       <div class="results-head">
         <div>
           <h2>Preise aller Dienstleister</h2>
-          <p class="muted">Sortiert nach Gesamtpreis, günstigster Anbieter ganz oben.</p>
+          <p class="muted">Sortiert nach Gesamtpreis, günstigster Anbieter ganz oben. Platzhalterpreise wie 99.999,00 € werden ausgeblendet.</p>
         </div>
       </div>
 
