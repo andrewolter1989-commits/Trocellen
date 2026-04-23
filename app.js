@@ -564,7 +564,6 @@ function renderResults(results) {
       <td>
         ${index === 0 ? '<span class="rank-badge">Günstigster</span>' : ''}
         <span class="provider-name">${escapeHtml(result.forwarder)}</span>
-        <div class="provider-subline">Zone ${result.zone}</div>
       </td>
       <td class="right">${money(result.basePrice)}</td>
       <td class="right">${percent(result.floaterPercent)}</td>

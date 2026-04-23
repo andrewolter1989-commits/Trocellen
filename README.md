@@ -36,3 +36,10 @@ v14:
 - zurück auf stabile v12-Basis
 - Tabelle vereinfacht (Zone unter Dienstleister, Grund entfernt)
 - leere Preise in rates.csv werden korrekt als kein Angebot behandelt
+
+
+v15:
+- Abholdatum vollständig entfernt
+- Hinweistext unter Lademeter entfernt
+- Zone aus Ergebnisliste entfernt
+- Zusammenfassung oben kompakter gestaltet
