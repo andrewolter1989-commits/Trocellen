@@ -1,6 +1,6 @@
 {
   "Berghegger": {
-    "availability": "aw@gpkollund.de",
+    "availability": "",
     "booking": ""
   },
   "bowker": {
@@ -21,7 +21,7 @@
   },
   "CEHA": {
     "availability": "",
-    "booking": "aw@gpkollund.de"
+    "booking": ""
   },
   "Convent": {
     "availability": "",
@@ -37,7 +37,7 @@
   },
   "DSV": {
     "availability": "",
-    "booking": ""
+    "booking": "aw@gpkollund.de"
   },
   "Duvenbeck": {
     "availability": "",
