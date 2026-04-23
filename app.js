@@ -18,6 +18,7 @@ const STATE = {
   rates: [],
   zones: [],
   floaterConfig: {},
+  emails: {},
   forwarders: [],
 };
 
@@ -116,6 +117,14 @@ function money(value) {
 
 function percent(value) {
   return Number.isFinite(value) ? `${formatNumber(value, 2)} %` : "0,00 %";
+}
+
+function formatDisplayDate(value) {
+  if (!value) return "—";
+  const parts = String(value).split("-");
+  if (parts.length !== 3) return value;
+  const [year, month, day] = parts;
+  return `${day}.${month}.${year}`;
 }
 
 async function fetchTextSmart(url) {
@@ -284,6 +293,28 @@ async function loadFloaterConfig() {
     normalized[normalizeKey(key)] = Number.isFinite(num) ? num : 0;
   });
   STATE.floaterConfig = normalized;
+}
+
+async function loadEmailConfig() {
+  try {
+    const text = await fetchTextSmart("emails.json");
+    const data = JSON.parse(text);
+    const normalized = {};
+    Object.entries(data || {}).forEach(([key, value]) => {
+      const nk = normalizeKey(key);
+      if (typeof value === "string") {
+        normalized[nk] = { availability: value.trim(), booking: "" };
+      } else {
+        normalized[nk] = {
+          availability: String(value?.availability || value?.anfrage || value?.request || "").trim(),
+          booking: String(value?.booking || value?.buchung || value?.order || "").trim(),
+        };
+      }
+    });
+    STATE.emails = normalized;
+  } catch {
+    STATE.emails = {};
+  }
 }
 
 function postalMatchesZone(row, postalCode) {
@@ -492,7 +523,23 @@ function buildCalculationForForwarder(forwarder, destCountry, postalCode, loadMe
 function renderEmptyRow(text = "Noch keine Berechnung.") {
   const tbody = document.getElementById("resultsBody");
   if (!tbody) return;
-  tbody.innerHTML = `<tr id="noResults"><td colspan="7" class="muted">${text}</td></tr>`;
+  tbody.innerHTML = `<tr id="noResults"><td colspan="9" class="muted">${text}</td></tr>`;
+}
+
+function getEmailConfig(forwarder) {
+  return STATE.emails[normalizeKey(forwarder)] || { availability: "", booking: "" };
+}
+
+function createEmailButton(kind, forwarder) {
+  const cfg = getEmailConfig(forwarder);
+  const address = kind === "booking" ? cfg.booking : cfg.availability;
+  const label = kind === "booking" ? "Sendung buchen" : "Verfügbarkeit anfragen";
+  const className = address ? "email-btn" : "email-btn secondary";
+  const onclick = address
+    ? `onclick="createEmailRequest('${escapeJs(forwarder)}','${kind}')"`
+    : `onclick="showMissingEmail('${escapeJs(forwarder)}','${kind}')"`;
+  const text = address ? label : "E-Mail fehlt";
+  return `<button type="button" class="${className}" ${onclick}>${text}</button>`;
 }
 
 function renderResults(results) {
@@ -510,16 +557,71 @@ function renderResults(results) {
     const tr = document.createElement("tr");
     if (index === 0) tr.className = "best-row";
     tr.innerHTML = `
-      <td>${index === 0 ? '<span class="rank-badge">Günstigster</span>' : ''}<span class="provider-name">${result.forwarder}</span></td>
+      <td>${index === 0 ? '<span class="rank-badge">Günstigster</span>' : ''}<span class="provider-name">${escapeHtml(result.forwarder)}</span></td>
       <td>${result.zone}</td>
       <td class="right">${money(result.basePrice)}</td>
       <td class="right">${percent(result.floaterPercent)}</td>
       <td class="right">${money(result.floaterAmount)}</td>
       <td class="right total-strong">${money(result.total)}</td>
-      <td class="meta-cell">${result.priceSource}</td>
+      <td class="meta-cell">${escapeHtml(result.priceSource)}</td>
+      <td>${createEmailButton("availability", result.forwarder)}</td>
+      <td>${createEmailButton("booking", result.forwarder)}</td>
     `;
     tbody.appendChild(tr);
   });
+}
+
+function showMissingEmail(forwarder, kind) {
+  const label = kind === "booking" ? "Buchung" : "Verfügbarkeit";
+  alert(`Für ${forwarder} ist noch keine E-Mail-Adresse für ${label} in emails.json hinterlegt.`);
+}
+
+function createEmailRequest(forwarder, kind) {
+  const cfg = getEmailConfig(forwarder);
+  const to = kind === "booking" ? cfg.booking : cfg.availability;
+  if (!to) {
+    showMissingEmail(forwarder, kind);
+    return;
+  }
+
+  const country = document.getElementById("destCountry")?.value?.trim() || "";
+  const plz = document.getElementById("postalCode")?.value?.trim() || "";
+  const shipmentType = getSelectedShipmentType();
+  const shipmentLabel = SHIPMENT_TYPES[shipmentType]?.label || shipmentType;
+  const effectiveLoadMeters = getEffectiveLoadMeters(shipmentType, document.getElementById("loadMeters")?.value || "");
+  const pickupDate = formatDisplayDate(document.getElementById("pickupDate")?.value || "");
+  const deliveryDate = formatDisplayDate(document.getElementById("deliveryDate")?.value || "");
+  const freeText = document.getElementById("freeText")?.value?.trim() || "";
+
+  const subjectPrefix = kind === "booking" ? "Sendungsbuchung" : "Verfügbarkeitsanfrage";
+  const subject = encodeURIComponent(`${subjectPrefix} ${country} ${plz}`.trim());
+
+  let bodyText = `Guten Tag zusammen,
+
+ich benötige für folgende Relation ${kind === "booking" ? "eine Buchung" : "eine Verfügbarkeitsprüfung"}:
+
+`;
+  bodyText += `Land ${country || "-"}
+`;
+  bodyText += `PLZ ${plz || "-"}
+`;
+  bodyText += `Transportart ${shipmentLabel}
+`;
+  if (shipmentType === "teilladung") {
+    bodyText += `Lademeter ${Number.isFinite(effectiveLoadMeters) ? String(effectiveLoadMeters).replace('.', ',') : "-"}
+`;
+  }
+  bodyText += `Abholdatum ${pickupDate}
+`;
+  bodyText += `Liefertermin ${deliveryDate}
+`;
+  if (freeText) bodyText += `Hinweis ${freeText}
+`;
+  bodyText += `
+Vielen Dank und kurze Rückmeldung.`;
+
+  const body = encodeURIComponent(bodyText);
+  window.location.href = `mailto:${to}?subject=${subject}&body=${body}`;
 }
 
 function updatePostalPlaceholder() {
@@ -556,6 +658,9 @@ function initCalculatorPage() {
   const countrySelect = document.getElementById("destCountry");
   const postalInput = document.getElementById("postalCode");
   const loadMetersInput = document.getElementById("loadMeters");
+  const pickupDateInput = document.getElementById("pickupDate");
+  const deliveryDateInput = document.getElementById("deliveryDate");
+  const freeTextInput = document.getElementById("freeText");
   const messageBox = document.getElementById("messageBox");
   const summaryBox = document.getElementById("summaryBox");
   const resultsSection = document.getElementById("resultsSection");
@@ -633,6 +738,9 @@ function initCalculatorPage() {
     document.getElementById("summaryPostal").textContent = input.postalCode;
     document.getElementById("summaryShipmentType").textContent = shipmentLabel;
     document.getElementById("summaryLdm").textContent = String(input.loadMeters).replace('.', ',');
+    document.getElementById("summaryPickupDate").textContent = formatDisplayDate(pickupDateInput.value);
+    document.getElementById("summaryDeliveryDate").textContent = formatDisplayDate(deliveryDateInput.value);
+    document.getElementById("summaryFreeText").textContent = freeTextInput.value.trim() || "—";
     document.getElementById("summaryCount").textContent = String(successfulResults.length);
     document.getElementById("summaryBest").textContent = `${cheapest.forwarder} (${money(cheapest.total)})`;
 
@@ -651,6 +759,9 @@ function initCalculatorPage() {
     setTimeout(() => {
       const ftlRadio = document.querySelector('input[name="shipmentType"][value="ftl"]');
       if (ftlRadio) ftlRadio.checked = true;
+      if (pickupDateInput) pickupDateInput.value = "";
+      if (deliveryDateInput) deliveryDateInput.value = "";
+      if (freeTextInput) freeTextInput.value = "";
       updatePostalPlaceholder();
       updateTransportUi();
       showMessage("", "warn");
@@ -662,7 +773,7 @@ function initCalculatorPage() {
 }
 
 async function boot() {
-  await Promise.all([loadZones(), loadRates(), loadFloaterConfig()]);
+  await Promise.all([loadZones(), loadRates(), loadFloaterConfig(), loadEmailConfig()]);
   initCalculatorPage();
 }
 
@@ -679,3 +790,18 @@ window.addEventListener("DOMContentLoaded", () => {
     console.error(error);
   });
 });
+
+
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+function escapeJs(value) {
+  return String(value ?? "")
+    .replace(/\\/g, "\\\\")
+    .replace(/'/g, "\\'");
+}

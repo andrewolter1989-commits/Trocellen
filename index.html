@@ -59,6 +59,18 @@
             <input id="loadMeters" type="text" inputmode="decimal" placeholder="z. B. 7,5" />
             <div class="field-hint">Nur bei Teilladung erforderlich.</div>
           </div>
+          <div class="field">
+            <label for="pickupDate">Abholdatum</label>
+            <input id="pickupDate" type="date" />
+          </div>
+          <div class="field">
+            <label for="deliveryDate">Liefertermin</label>
+            <input id="deliveryDate" type="date" />
+          </div>
+          <div class="field field-wide-bottom">
+            <label for="freeText">Freitext</label>
+            <input id="freeText" type="text" placeholder="z. B. Anmeldung vor Anlieferung oder Rampe 2" />
+          </div>
         </div>
 
         <div class="form-actions">
@@ -75,6 +87,9 @@
           <div class="summary-row"><strong>PLZ:</strong> <span id="summaryPostal">—</span></div>
           <div class="summary-row"><strong>Transportart:</strong> <span id="summaryShipmentType">—</span></div>
           <div class="summary-row" id="summaryLdmRow"><strong>Lademeter:</strong> <span id="summaryLdm">—</span></div>
+          <div class="summary-row"><strong>Abholdatum:</strong> <span id="summaryPickupDate">—</span></div>
+          <div class="summary-row"><strong>Liefertermin:</strong> <span id="summaryDeliveryDate">—</span></div>
+          <div class="summary-row"><strong>Freitext:</strong> <span id="summaryFreeText">—</span></div>
           <div class="summary-row"><strong>Dienstleister mit Ergebnis:</strong> <span id="summaryCount">—</span></div>
         </div>
         <div class="summary-right">
@@ -103,11 +118,13 @@
               <th class="right">Floater (€)</th>
               <th class="right">Preis (€)</th>
               <th>Grund</th>
+              <th>E-Mail</th>
+              <th>Buchung</th>
             </tr>
           </thead>
           <tbody id="resultsBody">
             <tr id="noResults">
-              <td colspan="7" class="muted">Noch keine Berechnung.</td>
+              <td colspan="9" class="muted">Noch keine Berechnung.</td>
             </tr>
           </tbody>
         </table>

@@ -76,7 +76,12 @@ body {
 }
 
 .form-grid-bottom {
-  grid-template-columns: minmax(220px, 320px);
+  grid-template-columns: repeat(3, minmax(180px, 1fr));
+  align-items: end;
+}
+
+.field-wide-bottom {
+  grid-column: 1 / -1;
 }
 
 .field { display: grid; gap: 8px; }
@@ -321,4 +326,27 @@ button.secondary {
 
 #loadMetersField input {
   width: 100%;
+}
+
+
+.email-btn {
+  appearance: none;
+  border: 0;
+  border-radius: 12px;
+  padding: 10px 14px;
+  background: var(--primary);
+  color: #fff;
+  font-size: 0.95rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.email-btn:hover {
+  background: var(--primary-dark);
+}
+
+.email-btn.secondary {
+  background: #eef3f6;
+  color: var(--muted);
+  border: 1px solid #97a7b6;
 }
