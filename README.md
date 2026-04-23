@@ -22,3 +22,10 @@ Dann im Browser öffnen:
 ```text
 http://localhost:8000/
 ```
+
+
+v12:
+- zurück auf die funktionierende Eingabemaske
+- leere Preise in rates.csv werden als 'kein Angebot' behandelt
+- alte 99.999-Platzhalter werden weiterhin ignoriert
+- Ergebnisbereich optisch bereinigt

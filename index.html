@@ -1,44 +1,136 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-<meta charset="UTF-8">
-<title>Trocellen v11</title>
-<link rel="stylesheet" href="style.css">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Trocellen Preisrechner</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+  <main class="app-shell">
+    <header class="hero-header">
+      <p class="eyebrow">Trocellen</p>
+      <h1>Preisrechner</h1>
+    </header>
 
-<h1>Preisrechner</h1>
+    <div id="fatalError" class="notice danger"></div>
 
-<div class="winner-card">
-  <div>
-    <div class="winner-label">🏆 Bester Preis</div>
-    <div class="winner-name">Ikwwalter</div>
-    <div class="winner-price">480,00 €</div>
-  </div>
-  <div>
-    <button>Verfügbarkeit</button>
-    <button>Buchen</button>
-  </div>
-</div>
+    <section class="calculator-shell card">
+      <form id="calculatorForm" class="calculator-form" novalidate>
+        <div class="form-grid form-grid-top">
+          <div class="field">
+            <label for="destCountry">Land</label>
+            <select id="destCountry">
+              <option value="">Bitte wählen</option>
+            </select>
+          </div>
 
-<table>
-<thead>
-<tr><th>Dienstleister</th><th>Preis</th><th>Aktionen</th></tr>
-</thead>
-<tbody id="resultsBody">
-<tr>
-<td><strong>Ikwwalter</strong><br><small>Zone 35</small></td>
-<td>480,00 €</td>
-<td>
-<button onclick="toggleDetails(this)">Details</button>
-</td>
-</tr>
-<tr class="details-row hidden">
-<td colspan="3">Basis: 480 € | Diesel: 0 €</td>
-</tr>
-</tbody>
-</table>
+          <div class="field">
+            <label for="postalCode">PLZ Empfänger</label>
+            <input id="postalCode" type="text" placeholder="z. B. 24939" />
+          </div>
 
-<script src="app.js"></script>
+          <fieldset class="field transport-field">
+            <legend>Transportart</legend>
+            <div class="transport-switch" id="transportSwitch">
+              <label class="transport-option active">
+                <input type="radio" name="shipmentType" value="teilladung" />
+                <span>Teilladung</span>
+              </label>
+              <label class="transport-option">
+                <input type="radio" name="shipmentType" value="ftl" checked />
+                <span>FTL</span>
+              </label>
+              <label class="transport-option">
+                <input type="radio" name="shipmentType" value="mega" />
+                <span>Mega</span>
+              </label>
+              <label class="transport-option">
+                <input type="radio" name="shipmentType" value="jumbo" />
+                <span>Jumbo</span>
+              </label>
+            </div>
+          </fieldset>
+        </div>
+
+        <div class="form-grid form-grid-bottom">
+          <div class="field" id="loadMetersField">
+            <label for="loadMeters">Lademeter</label>
+            <input id="loadMeters" type="text" inputmode="decimal" placeholder="z. B. 7,5" />
+            <div class="field-hint">Nur bei Teilladung erforderlich.</div>
+          </div>
+          <div class="field">
+            <label for="pickupDate">Abholdatum</label>
+            <input id="pickupDate" type="date" />
+          </div>
+          <div class="field">
+            <label for="deliveryDate">Liefertermin</label>
+            <input id="deliveryDate" type="date" />
+          </div>
+          <div class="field field-wide-bottom">
+            <label for="freeText">Freitext</label>
+            <input id="freeText" type="text" placeholder="z. B. Anmeldung vor Anlieferung oder Rampe 2" />
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button class="primary action-button" type="submit">Berechnen</button>
+          <button class="secondary action-button" type="reset">Zurücksetzen</button>
+        </div>
+      </form>
+
+      <div id="messageBox" class="notice warn"></div>
+
+      <section id="summaryBox" class="summary-box" style="display:none;">
+        <div class="summary-left">
+          <div class="summary-row"><strong>Land:</strong> <span id="summaryCountry">—</span></div>
+          <div class="summary-row"><strong>PLZ:</strong> <span id="summaryPostal">—</span></div>
+          <div class="summary-row"><strong>Transportart:</strong> <span id="summaryShipmentType">—</span></div>
+          <div class="summary-row" id="summaryLdmRow"><strong>Lademeter:</strong> <span id="summaryLdm">—</span></div>
+          <div class="summary-row"><strong>Abholdatum:</strong> <span id="summaryPickupDate">—</span></div>
+          <div class="summary-row"><strong>Liefertermin:</strong> <span id="summaryDeliveryDate">—</span></div>
+          <div class="summary-row"><strong>Freitext:</strong> <span id="summaryFreeText">—</span></div>
+          <div class="summary-row"><strong>Dienstleister mit Ergebnis:</strong> <span id="summaryCount">—</span></div>
+        </div>
+        <div class="summary-right">
+          <div class="summary-best-label">Günstigster Anbieter</div>
+          <div class="summary-best" id="summaryBest">—</div>
+        </div>
+      </section>
+    </section>
+
+    <section id="resultsSection" class="results-shell card" style="display:none;">
+      <div class="results-head">
+        <div>
+          <h2>Preise aller Dienstleister</h2>
+          <p class="muted">Sortiert nach Gesamtpreis. Leere Preise oder nicht angebotene Zonen werden automatisch nicht angezeigt.</p>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table class="price-table">
+          <thead>
+            <tr>
+              <th>Dienstleister</th>
+              <th>Zone</th>
+              <th class="right">Basis (€)</th>
+              <th class="right">Floater (%)</th>
+              <th class="right">Floater (€)</th>
+              <th class="right">Preis (€)</th>
+              <th>Grund</th>
+              <th>Anfrage</th>
+              <th>Buchung</th>
+            </tr>
+          </thead>
+          <tbody id="resultsBody">
+            <tr id="noResults">
+              <td colspan="9" class="muted">Noch keine Berechnung.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+  <script src="app.js"></script>
 </body>
 </html>
