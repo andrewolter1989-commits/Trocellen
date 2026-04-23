@@ -57,10 +57,12 @@
           <div class="field" id="loadMetersField">
             <label for="loadMeters">Lademeter</label>
             <input id="loadMeters" type="text" inputmode="decimal" placeholder="z. B. 7,5" />
-            <div class="field-hint"></div>
+            <div class="field-hint">Nur bei Teilladung erforderlich.</div>
           </div>
           <div class="field">
-            
+            <label for="pickupDate">Abholdatum</label>
+            <input id="pickupDate" type="date" />
+          </div>
           <div class="field">
             <label for="deliveryDate">Liefertermin</label>
             <input id="deliveryDate" type="date" />
@@ -110,19 +112,17 @@
           <thead>
             <tr>
               <th>Dienstleister</th>
-              
-              <th class="right">Basis (€)</th>
+                            <th class="right">Basis (€)</th>
               <th class="right">Floater (%)</th>
               <th class="right">Floater (€)</th>
               <th class="right">Preis (€)</th>
-              <th>Grund</th>
-              <th>Anfrage</th>
+                            <th>Anfrage</th>
               <th>Buchung</th>
             </tr>
           </thead>
           <tbody id="resultsBody">
             <tr id="noResults">
-              <td colspan="9" class="muted">Noch keine Berechnung.</td>
+              <td colspan="7" class="muted">Noch keine Berechnung.</td>
             </tr>
           </tbody>
         </table>

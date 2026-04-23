@@ -29,3 +29,10 @@ v12:
 - leere Preise in rates.csv werden als 'kein Angebot' behandelt
 - alte 99.999-Platzhalter werden weiterhin ignoriert
 - Ergebnisbereich optisch bereinigt
+
+
+v14:
+- Abholdatum entfernt
+- zurück auf stabile v12-Basis
+- Tabelle vereinfacht (Zone unter Dienstleister, Grund entfernt)
+- leere Preise in rates.csv werden korrekt als kein Angebot behandelt
