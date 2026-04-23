@@ -527,7 +527,7 @@ function buildCalculationForForwarder(forwarder, destCountry, postalCode, loadMe
 function renderEmptyRow(text = "Noch keine Berechnung.") {
   const tbody = document.getElementById("resultsBody");
   if (!tbody) return;
-  tbody.innerHTML = `<tr id="noResults"><td colspan="7" class="muted">${text}</td></tr>`;
+  tbody.innerHTML = `<tr id="noResults"><td colspan="9" class="muted">${text}</td></tr>`;
 }
 
 function getEmailConfig(forwarder) {
@@ -538,12 +538,12 @@ function createEmailButton(kind, forwarder) {
   const cfg = getEmailConfig(forwarder);
   const address = kind === "booking" ? cfg.booking : cfg.availability;
   const label = kind === "booking" ? "Sendung buchen" : "Verfügbarkeit anfragen";
-
-  if (!address) {
-    return `<span class="email-missing">Keine E-Mail hinterlegt</span>`;
-  }
-
-  return `<button type="button" class="email-btn" onclick="createEmailRequest('${escapeJs(forwarder)}','${kind}')">${label}</button>`;
+  const className = address ? "email-btn" : "email-btn secondary";
+  const onclick = address
+    ? `onclick="createEmailRequest('${escapeJs(forwarder)}','${kind}')"`
+    : `onclick="showMissingEmail('${escapeJs(forwarder)}','${kind}')"`;
+  const text = address ? label : "E-Mail fehlt";
+  return `<button type="button" class="${className}" ${onclick}>${text}</button>`;
 }
 
 function renderResults(results) {
@@ -561,15 +561,13 @@ function renderResults(results) {
     const tr = document.createElement("tr");
     if (index === 0) tr.className = "best-row";
     tr.innerHTML = `
-      <td>
-        ${index === 0 ? '<span class="rank-badge">Günstigster</span>' : ''}
-        <span class="provider-name">${escapeHtml(result.forwarder)}</span>
-        <div class="provider-subline">Zone ${result.zone}</div>
-      </td>
+      <td>${index === 0 ? '<span class="rank-badge">Günstigster</span>' : ''}<span class="provider-name">${escapeHtml(result.forwarder)}</span></td>
+      <td>${result.zone}</td>
       <td class="right">${money(result.basePrice)}</td>
       <td class="right">${percent(result.floaterPercent)}</td>
       <td class="right">${money(result.floaterAmount)}</td>
       <td class="right total-strong">${money(result.total)}</td>
+      <td class="meta-cell">${escapeHtml(result.priceSource)}</td>
       <td>${createEmailButton("availability", result.forwarder)}</td>
       <td>${createEmailButton("booking", result.forwarder)}</td>
     `;
@@ -595,6 +593,7 @@ function createEmailRequest(forwarder, kind) {
   const shipmentType = getSelectedShipmentType();
   const shipmentLabel = SHIPMENT_TYPES[shipmentType]?.label || shipmentType;
   const effectiveLoadMeters = getEffectiveLoadMeters(shipmentType, document.getElementById("loadMeters")?.value || "");
+  const pickupDate = formatDisplayDate(document.getElementById("pickupDate")?.value || "");
   const deliveryDate = formatDisplayDate(document.getElementById("deliveryDate")?.value || "");
   const freeText = document.getElementById("freeText")?.value?.trim() || "";
 
@@ -616,6 +615,8 @@ ich benötige für folgende Relation ${kind === "booking" ? "eine Buchung" : "ei
     bodyText += `Lademeter ${Number.isFinite(effectiveLoadMeters) ? String(effectiveLoadMeters).replace('.', ',') : "-"}
 `;
   }
+  bodyText += `Abholdatum ${pickupDate}
+`;
   bodyText += `Liefertermin ${deliveryDate}
 `;
   if (freeText) bodyText += `Hinweis ${freeText}
@@ -661,6 +662,7 @@ function initCalculatorPage() {
   const countrySelect = document.getElementById("destCountry");
   const postalInput = document.getElementById("postalCode");
   const loadMetersInput = document.getElementById("loadMeters");
+  const pickupDateInput = document.getElementById("pickupDate");
   const deliveryDateInput = document.getElementById("deliveryDate");
   const freeTextInput = document.getElementById("freeText");
   const messageBox = document.getElementById("messageBox");
@@ -740,6 +742,7 @@ function initCalculatorPage() {
     document.getElementById("summaryPostal").textContent = input.postalCode;
     document.getElementById("summaryShipmentType").textContent = shipmentLabel;
     document.getElementById("summaryLdm").textContent = String(input.loadMeters).replace('.', ',');
+    document.getElementById("summaryPickupDate").textContent = formatDisplayDate(pickupDateInput.value);
     document.getElementById("summaryDeliveryDate").textContent = formatDisplayDate(deliveryDateInput.value);
     document.getElementById("summaryFreeText").textContent = freeTextInput.value.trim() || "—";
     document.getElementById("summaryCount").textContent = String(successfulResults.length);
@@ -760,6 +763,7 @@ function initCalculatorPage() {
     setTimeout(() => {
       const ftlRadio = document.querySelector('input[name="shipmentType"][value="ftl"]');
       if (ftlRadio) ftlRadio.checked = true;
+      if (pickupDateInput) pickupDateInput.value = "";
       if (deliveryDateInput) deliveryDateInput.value = "";
       if (freeTextInput) freeTextInput.value = "";
       updatePostalPlaceholder();
