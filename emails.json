@@ -1,206 +1,191 @@
 {
   "Berghegger": {
-    "availability": "aw@gpkollund.de",
-    "booking": "aw@gpkollund.de"
+    "availability": "Auftrag-du@maintrans-spedition.de",
+    "booking": "Auftrag-du@maintrans-spedition.de"
   },
   "bowker": {
-    "availability": "aw@gpkollund.de",
-    "booking": "aw@gpkollund.de"
+    "availability": "",
+    "booking": ""
   },
   "btk": {
-    "availability": "aw@gpkollund.de",
-    "booking": "aw@gpkollund.de"
+    "availability": "",
+    "booking": ""
   },
   "BTK": {
-    "availability": "aw@gpkollund.de",
-    "booking": "aw@gpkollund.de"
+    "availability": "",
+    "booking": ""
   },
   "Ceha": {
-    "availability": "aw@gpkollund.de",
-    "booking": "aw@gpkollund.de"
+    "availability": "",
+    "booking": ""
   },
   "CEHA": {
-    "availability": "aw@gpkollund.de",
-    "booking": "aw@gpkollund.de"
+    "availability": "",
+    "booking": ""
   },
   "Convent": {
-    "availability": "aw@gpkollund.de",
-    "booking": "aw@gpkollund.de"
+    "availability": "",
+    "booking": ""
   },
   "CTK": {
-    "availability": "aw@gpkollund.de",
-    "booking": "aw@gpkollund.de"
+    "availability": "customerservice@ctk-logistics.pl",
+    "booking": "customerservice@ctk-logistics.pl"
   },
   "doepke": {
-    "availability": "aw@gpkollund.de",
-    "booking": "aw@gpkollund.de"
+    "availability": "",
+    "booking": ""
   },
   "DSV": {
-    "availability": "aw@gpkollund.de",
-    "booking": "aw@gpkollund.de"
+    "availability": "",
+    "booking": ""
   },
   "Duvenbeck": {
-    "availability": "aw@gpkollund.de",
-    "booking": "aw@gpkollund.de"
+    "availability": "",
+    "booking": ""
   },
   "Emons": {
-    "availability": "aw@gpkollund.de",
-    "booking": "aw@gpkollund.de"
+    "availability": "",
+    "booking": ""
   },
   "epotrans": {
-    "availability": "aw@gpkollund.de",
-    "booking": "aw@gpkollund.de"
+    "availability": "",
+    "booking": ""
   },
   "fairscargo": {
-    "availability": "aw@gpkollund.de",
-    "booking": "aw@gpkollund.de"
+    "availability": "",
+    "booking": ""
   },
   "Fairscargo": {
-    "availability": "aw@gpkollund.de",
-    "booking": "aw@gpkollund.de"
+    "availability": "",
+    "booking": ""
   },
   "Hegelmann": {
-    "availability": "aw@gpkollund.de",
-    "booking": "aw@gpkollund.de"
+    "availability": "",
+    "booking": ""
   },
   "Heinloth": {
-    "availability": "aw@gpkollund.de",
-    "booking": "aw@gpkollund.de"
+    "availability": "sales@heinloth.com",
+    "booking": "sales@heinloth.com"
   },
   "Heuma": {
-    "availability": "aw@gpkollund.de",
-    "booking": "aw@gpkollund.de"
+    "availability": "hucht@heuma-international.com;longo@heuma-international.com",
+    "booking": "hucht@heuma-international.com;longo@heuma-international.com"
   },
   "husch": {
-    "availability": "aw@gpkollund.de",
-    "booking": "aw@gpkollund.de"
+    "availability": "",
+    "booking": ""
   },
   "Jan": {
-    "availability": "aw@gpkollund.de",
-    "booking": "aw@gpkollund.de"
+    "availability": "",
+    "booking": ""
+  },
+  "JMIT": {
+    "availability": "smekal@jmit.cz",
+    "booking": "smekal@jmit.cz"
   },
   "Kubisch": {
-    "availability": "aw@gpkollund.de",
-    "booking": "aw@gpkollund.de"
+    "availability": "",
+    "booking": ""
   },
   "LIT": {
-    "availability": "aw@gpkollund.de",
-    "booking": "aw@gpkollund.de"
+    "availability": "EwaMaria.Amendt@lit.de",
+    "booking": "EwaMaria.Amendt@lit.de"
   },
   "LKW-Walter": {
-    "availability": "aw@gpkollund.de",
-    "booking": "aw@gpkollund.de"
+    "availability": "",
+    "booking": ""
   },
   "lkwwalter": {
-    "availability": "aw@gpkollund.de",
-    "booking": "aw@gpkollund.de"
+    "availability": "",
+    "booking": ""
   },
   "Ludwig": {
-    "availability": "aw@gpkollund.de",
-    "booking": "aw@gpkollund.de"
+    "availability": "",
+    "booking": ""
   },
   "Marathon": {
-    "availability": "aw@gpkollund.de",
-    "booking": "aw@gpkollund.de"
+    "availability": "customerservice@emarathon.eu",
+    "booking": "customerservice@emarathon.eu"
+  },
+  "Maszonski": {
+    "availability": "ewa.ignatowicz@mcg-logistics.com",
+    "booking": "ewa.ignatowicz@mcg-logistics.com"
   },
   "MBS": {
-    "availability": "aw@gpkollund.de",
-    "booking": "aw@gpkollund.de"
+    "availability": "norbert.theobald@mbslogistics.com",
+    "booking": "norbert.theobald@mbslogistics.com"
   },
   "McCann": {
-    "availability": "aw@gpkollund.de",
-    "booking": "aw@gpkollund.de"
+    "availability": "",
+    "booking": ""
   },
   "Moeller": {
-    "availability": "aw@gpkollund.de",
-    "booking": "aw@gpkollund.de"
+    "availability": "dispo.koeln@moeller-transporte.de",
+    "booking": "dispo.koeln@moeller-transporte.de"
   },
   "Morrisson": {
-    "availability": "aw@gpkollund.de",
-    "booking": "aw@gpkollund.de"
+    "availability": "",
+    "booking": ""
   },
   "munsberg": {
-    "availability": "aw@gpkollund.de",
-    "booking": "aw@gpkollund.de"
+    "availability": "",
+    "booking": ""
   },
   "Neu": {
-    "availability": "aw@gpkollund.de",
-    "booking": "aw@gpkollund.de"
+    "availability": "",
+    "booking": ""
   },
   "Noerpel": {
-    "availability": "aw@gpkollund.de",
-    "booking": "aw@gpkollund.de"
+    "availability": "",
+    "booking": ""
   },
   "Nosta": {
-    "availability": "aw@gpkollund.de",
-    "booking": "aw@gpkollund.de"
+    "availability": "",
+    "booking": ""
   },
   "Nostsa": {
-    "availability": "aw@gpkollund.de",
-    "booking": "aw@gpkollund.de"
+    "availability": "",
+    "booking": ""
   },
   "Rieck": {
-    "availability": "aw@gpkollund.de",
-    "booking": "aw@gpkollund.de"
+    "availability": "",
+    "booking": ""
   },
   "Semmer": {
-    "availability": "aw@gpkollund.de",
-    "booking": "aw@gpkollund.de"
+    "availability": "p.kreutner@semmer.info",
+    "booking": "p.kreutner@semmer.info"
   },
   "Sievert": {
-    "availability": "aw@gpkollund.de",
-    "booking": "aw@gpkollund.de"
+    "availability": "",
+    "booking": ""
   },
   "Sostmeier": {
-    "availability": "aw@gpkollund.de",
-    "booking": "aw@gpkollund.de"
+    "availability": "",
+    "booking": ""
   },
   "Strohbecke": {
-    "availability": "aw@gpkollund.de",
-    "booking": "aw@gpkollund.de"
+    "availability": "",
+    "booking": ""
   },
   "Stromps": {
-    "availability": "aw@gpkollund.de",
-    "booking": "aw@gpkollund.de"
+    "availability": "",
+    "booking": ""
   },
   "Timotrans": {
-    "availability": "aw@gpkollund.de",
-    "booking": "aw@gpkollund.de"
+    "availability": "cmueller@timotrans.de",
+    "booking": "cmueller@timotrans.de"
   },
   "Tombers": {
-    "availability": "aw@gpkollund.de",
-    "booking": "aw@gpkollund.de"
+    "availability": "v.lukas@tombers.de",
+    "booking": "v.lukas@tombers.de"
   },
   "Toplogistik": {
-    "availability": "aw@gpkollund.de",
-    "booking": "aw@gpkollund.de"
+    "availability": "maria.haas@toplogistik.com",
+    "booking": "maria.haas@toplogistik.com"
   },
   "Transcargo": {
-    "availability": "aw@gpkollund.de",
-    "booking": "aw@gpkollund.de"
-  },
-  "Transped": {
-    "availability": "aw@gpkollund.de",
-    "booking": "aw@gpkollund.de"
-  },
-  "Tricolore": {
-    "availability": "aw@gpkollund.de",
-    "booking": "aw@gpkollund.de"
-  },
-  "TSD": {
-    "availability": "aw@gpkollund.de",
-    "booking": "aw@gpkollund.de"
-  },
-  "Vertex": {
-    "availability": "aw@gpkollund.de",
-    "booking": "aw@gpkollund.de"
-  },
-  "Winner": {
-    "availability": "aw@gpkollund.de",
-    "booking": "aw@gpkollund.de"
-  },
-  "Zobel": {
-    "availability": "aw@gpkollund.de",
-    "booking": "aw@gpkollund.de"
+    "availability": "a.rumin@transcargo.com.pl",
+    "booking": "a.rumin@transcargo.com.pl"
   }
+
 }
