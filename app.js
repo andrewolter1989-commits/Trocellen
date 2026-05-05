@@ -594,8 +594,9 @@ function createEmailRequest(forwarder, kind) {
   const shipmentType = getSelectedShipmentType();
   const shipmentLabel = SHIPMENT_TYPES[shipmentType]?.label || shipmentType;
   const effectiveLoadMeters = getEffectiveLoadMeters(shipmentType, document.getElementById("loadMeters")?.value || "");
-  const deliveryDate = formatDisplayDate(document.getElementById("deliveryDate")?.value || "");
-  const freeText = document.getElementById("freeText")?.value?.trim() || "";
+const pickupDate = formatDisplayDate(document.getElementById("pickupDate")?.value || "");
+const deliveryDate = formatDisplayDate(document.getElementById("deliveryDate")?.value || "");
+const freeText = document.getElementById("freeText")?.value?.trim() || "";
 
   const subjectPrefix = kind === "booking" ? "Sendungsbuchung" : "Verfügbarkeitsanfrage";
   const subject = encodeURIComponent(`${subjectPrefix} ${country} ${plz}`.trim());
@@ -615,7 +616,9 @@ ich benötige für folgende Relation ${kind === "booking" ? "eine Buchung" : "ei
     bodyText += `Lademeter ${Number.isFinite(effectiveLoadMeters) ? String(effectiveLoadMeters).replace('.', ',') : "-"}
 `;
   }
-  bodyText += `Liefertermin ${deliveryDate}
+bodyText += `Abholdatum ${pickupDate}
+`;
+bodyText += `Liefertermin ${deliveryDate}
 `;
   if (freeText) bodyText += `Hinweis ${freeText}
 `;
@@ -660,8 +663,9 @@ function initCalculatorPage() {
   const countrySelect = document.getElementById("destCountry");
   const postalInput = document.getElementById("postalCode");
   const loadMetersInput = document.getElementById("loadMeters");
-  const deliveryDateInput = document.getElementById("deliveryDate");
-  const freeTextInput = document.getElementById("freeText");
+const pickupDateInput = document.getElementById("pickupDate");
+const deliveryDateInput = document.getElementById("deliveryDate");
+const freeTextInput = document.getElementById("freeText");
   const messageBox = document.getElementById("messageBox");
   const summaryBox = document.getElementById("summaryBox");
   const resultsSection = document.getElementById("resultsSection");
@@ -738,8 +742,9 @@ function initCalculatorPage() {
     document.getElementById("summaryCountry").textContent = input.destCountry;
     document.getElementById("summaryPostal").textContent = input.postalCode;
     document.getElementById("summaryShipmentType").textContent = shipmentLabel;
-    document.getElementById("summaryLdm").textContent = String(input.loadMeters).replace('.', ',');
-    document.getElementById("summaryDeliveryDate").textContent = formatDisplayDate(deliveryDateInput.value);
+document.getElementById("summaryLdm").textContent = String(input.loadMeters).replace('.', ',');
+document.getElementById("summaryPickupDate").textContent = formatDisplayDate(pickupDateInput.value);
+document.getElementById("summaryDeliveryDate").textContent = formatDisplayDate(deliveryDateInput.value);
     document.getElementById("summaryFreeText").textContent = freeTextInput.value.trim() || "—";
     document.getElementById("summaryCount").textContent = String(successfulResults.length);
     document.getElementById("summaryBest").textContent = `${cheapest.forwarder} (${money(cheapest.total)})`;
@@ -759,8 +764,9 @@ function initCalculatorPage() {
     setTimeout(() => {
       const ftlRadio = document.querySelector('input[name="shipmentType"][value="ftl"]');
       if (ftlRadio) ftlRadio.checked = true;
-      if (deliveryDateInput) deliveryDateInput.value = "";
-      if (freeTextInput) freeTextInput.value = "";
+if (pickupDateInput) pickupDateInput.value = "";
+if (deliveryDateInput) deliveryDateInput.value = "";
+if (freeTextInput) freeTextInput.value = "";
       updatePostalPlaceholder();
       updateTransportUi();
       showMessage("", "warn");
