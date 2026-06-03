@@ -530,12 +530,39 @@ function renderEmptyRow(text = "Noch keine Berechnung.") {
   tbody.innerHTML = `<tr id="noResults"><td colspan="7" class="muted">${text}</td></tr>`;
 }
 
-function getEmailConfig(forwarder) {
-  return STATE.emails[normalizeKey(forwarder)] || { availability: "", booking: "" };
+function getEmailConfig(forwarder, destCountry) {
+  const cfg = STATE.emails[normalizeKey(forwarder)];
+  if (!cfg) return { availability: "", booking: "" };
+
+  const country = String(destCountry || "").toUpperCase();
+  const relationKey = country === "DE" ? "national" : "international";
+
+  // Alte einfache Struktur weiter unterstützen:
+  // "Emons": { "availability": "...", "booking": "..." }
+  if (cfg.availability !== undefined || cfg.booking !== undefined) {
+    return {
+      availability: String(cfg.availability || "").trim(),
+      booking: String(cfg.booking || "").trim(),
+    };
+  }
+
+  const selected =
+    cfg[country] ||
+    cfg[relationKey] ||
+    cfg.export ||
+    cfg.all ||
+    {};
+
+  return {
+    availability: String(selected.availability || "").trim(),
+    booking: String(selected.booking || "").trim(),
+  };
 }
 
 function createEmailButton(kind, forwarder) {
-  const cfg = getEmailConfig(forwarder);
+  const destCountry = document.getElementById("destCountry")?.value || "";
+  const cfg = getEmailConfig(forwarder, destCountry);
+
   const address = kind === "booking" ? cfg.booking : cfg.availability;
   const label = kind === "booking" ? "Sendung buchen" : "Verfügbarkeit anfragen";
 

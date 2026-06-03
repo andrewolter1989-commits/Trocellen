@@ -43,9 +43,14 @@
     "availability": "",
     "booking": ""
   },
-  "Emons": {
-    "availability": "",
-    "booking": ""
+ "Emons": {
+  "national": {
+    "availability": "direct.koeln@emons.de",
+    "booking": "direct.koeln@emons.de"
+  },
+  "international": {
+    "availability": "International.koeln@emons.de",
+    "booking": "International.koeln@emons.de"
   },
   "epotrans": {
     "availability": "",
@@ -184,8 +189,8 @@
     "booking": "maria.haas@toplogistik.com"
   },
   "Transcargo": {
-    "availability": "a.rumin@transcargo.com.pl",
-    "booking": "a.rumin@transcargo.com.pl"
+    "availability": "a.rumin@transcargo.com.pl;p.rzemyk@transcargo.com.pl",
+    "booking": "a.rumin@transcargo.com.pl;p.rzemyk@transcargo.com.pl"
   }
 
 }
