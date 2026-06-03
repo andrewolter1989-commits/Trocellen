@@ -303,23 +303,29 @@ async function loadEmailConfig() {
     const text = await fetchTextSmart("emails.json");
     const data = JSON.parse(text);
     const normalized = {};
+
     Object.entries(data || {}).forEach(([key, value]) => {
       const nk = normalizeKey(key);
+
       if (typeof value === "string") {
-        normalized[nk] = { availability: value.trim(), booking: "" };
-      } else {
         normalized[nk] = {
-          availability: String(value?.availability || value?.anfrage || value?.request || "").trim(),
-          booking: String(value?.booking || value?.buchung || value?.order || "").trim(),
+          all: {
+            availability: value.trim(),
+            booking: ""
+          }
         };
+        return;
       }
+
+      // Neue Struktur mit national / international / Ländern / all erhalten
+      normalized[nk] = value || {};
     });
+
     STATE.emails = normalized;
   } catch {
     STATE.emails = {};
   }
 }
-
 function postalMatchesZone(row, postalCode) {
   const country = String(row.destCountry ?? "").toUpperCase().trim();
   const postal = normalizePostalByCountry(country, postalCode);
@@ -609,14 +615,15 @@ function showMissingEmail(forwarder, kind) {
 }
 
 function createEmailRequest(forwarder, kind) {
-  const cfg = getEmailConfig(forwarder);
+  const country = document.getElementById("destCountry")?.value?.trim() || "";
+  const cfg = getEmailConfig(forwarder, country);
   const to = kind === "booking" ? cfg.booking : cfg.availability;
   if (!to) {
     showMissingEmail(forwarder, kind);
     return;
   }
 
-  const country = document.getElementById("destCountry")?.value?.trim() || "";
+
   const plz = document.getElementById("postalCode")?.value?.trim() || "";
   const shipmentType = getSelectedShipmentType();
   const shipmentLabel = SHIPMENT_TYPES[shipmentType]?.label || shipmentType;
