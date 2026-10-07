@@ -192,6 +192,10 @@
   "Transcargo": {
     "availability": "a.rumin@transcargo.com.pl;p.rzemyk@transcargo.com.pl",
     "booking": "a.rumin@transcargo.com.pl;p.rzemyk@transcargo.com.pl"
+  },
+  "Ewalscargo": {
+    "availability": "csdffw4@nl.ewals.com",
+    "booking": "csdffw4@nl.ewals.com"
   }
 
 }
